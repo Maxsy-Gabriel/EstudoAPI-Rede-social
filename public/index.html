@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Feed</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <nav class="topnav">
+    <span class="topnav-dot" aria-hidden="true"></span>
+    <a href="#pessoas">Pessoas</a>
+    <a href="#feed">Feed</a>
+  </nav>
+
+  <div class="layout">
+    <aside class="rail" id="pessoas" aria-labelledby="people-title">
+      <h2 id="people-title">Pessoas</h2>
+
+      <ul id="users-list" class="people-list"></ul>
+
+      <form id="users-form" class="people-form">
+        <input id="user-name" type="text" placeholder="Nome" required />
+        <input id="user-username" type="text" placeholder="username" required />
+        <button type="submit">Adicionar</button>
+      </form>
+    </aside>
+
+    <main class="feed" id="feed" aria-labelledby="feed-title">
+      <h2 id="feed-title" class="sr-only">Feed</h2>
+
+      <form id="posts-form" class="composer">
+        <span id="composer-avatar" class="avatar" aria-hidden="true"></span>
+        <input id="post-text" type="text" placeholder="O que você está pensando?" required />
+        <button type="submit">Postar</button>
+      </form>
+
+      <ul id="posts-list" class="posts-list"></ul>
+    </main>
+
+    <aside class="rail" aria-labelledby="identity-title">
+      <h2 id="identity-title">Você é</h2>
+      <div id="identity-card"></div>
+    </aside>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

@@ -1,0 +1,174 @@
+{
+  "users": [
+    {
+      "id": 4,
+      "name": "Gabriel Maxsy da Silva",
+      "username": "Maxsy"
+    },
+    {
+      "id": 5,
+      "name": "Pablo Binotto",
+      "username": "Pablo Tech Lead"
+    },
+    {
+      "id": 6,
+      "name": "João Martins",
+      "username": "Jão"
+    },
+    {
+      "id": 7,
+      "name": "Teste1",
+      "username": "teste1"
+    },
+    {
+      "id": 8,
+      "name": "Pablo Binotto",
+      "username": "Pablo Tech Lead"
+    }
+  ],
+  "posts": [
+    {
+      "id": 1,
+      "userId": 1,
+      "text": "Hoje comecei a estudar Node.js! 🚀",
+      "createdAt": "2026-08-10T12:00:00.000Z"
+    },
+    {
+      "id": 2,
+      "userId": 2,
+      "text": "Express deixa a criação de APIs muito mais simples 😄",
+      "createdAt": "2026-08-10T12:10:00.000Z"
+    },
+    {
+      "id": 3,
+      "userId": 4,
+      "text": "Em nada no momento",
+      "createdAt": "2026-08-11T16:42:54.859Z"
+    },
+    {
+      "id": 4,
+      "userId": 5,
+      "text": "Você sabia que o sucesso de um app depende de eventos que duram menos de 50 milissegundos no banco de dados?",
+      "createdAt": "2026-08-11T16:55:33.896Z"
+    },
+    {
+      "id": 5,
+      "userId": 6,
+      "text": "Mano backend é treta!!",
+      "createdAt": "2026-08-11T16:59:27.916Z"
+    },
+    {
+      "id": 6,
+      "userId": 6,
+      "text": "Em nada no momento",
+      "createdAt": "2026-08-11T18:04:17.637Z"
+    }
+  ],
+  "comments": [
+    {
+      "id": 1,
+      "postId": 1,
+      "userId": 2,
+      "text": "Boa! Depois olha middlewares.",
+      "createdAt": "2026-08-10T12:20:00.000Z"
+    },
+    {
+      "id": 2,
+      "postId": 4,
+      "userId": 4,
+      "text": "Cara Pablo, sério!?",
+      "createdAt": "2026-08-11T16:56:18.536Z"
+    },
+    {
+      "id": 3,
+      "postId": 4,
+      "userId": 5,
+      "text": "Sim!!!",
+      "createdAt": "2026-08-11T16:57:07.127Z"
+    },
+    {
+      "id": 4,
+      "postId": 3,
+      "userId": 3,
+      "text": "Poxaaa, que pena!",
+      "createdAt": "2026-08-11T16:57:30.179Z"
+    },
+    {
+      "id": 5,
+      "postId": 5,
+      "userId": 4,
+      "text": "Cara vai dar certo!",
+      "createdAt": "2026-08-11T16:59:45.585Z"
+    },
+    {
+      "id": 6,
+      "postId": 5,
+      "userId": 6,
+      "text": "teste",
+      "createdAt": "2026-08-11T17:48:25.344Z"
+    },
+    {
+      "id": 7,
+      "postId": 5,
+      "userId": 6,
+      "text": "oi",
+      "createdAt": "2026-08-11T18:04:13.635Z"
+    }
+  ],
+  "reactions": [
+    {
+      "id": 1,
+      "postId": 1,
+      "userId": 2,
+      "type": "like"
+    },
+    {
+      "id": 2,
+      "postId": 1,
+      "userId": 3,
+      "type": "like"
+    },
+    {
+      "id": 3,
+      "postId": 4,
+      "userId": 4,
+      "type": "like"
+    },
+    {
+      "id": 4,
+      "postId": 3,
+      "userId": 3,
+      "type": "dislike"
+    },
+    {
+      "id": 5,
+      "postId": 2,
+      "userId": 4,
+      "type": "dislike"
+    },
+    {
+      "id": 6,
+      "postId": 1,
+      "userId": 4,
+      "type": "dislike"
+    },
+    {
+      "id": 7,
+      "postId": 5,
+      "userId": 4,
+      "type": "like"
+    },
+    {
+      "id": 8,
+      "postId": 5,
+      "userId": 6,
+      "type": "like"
+    },
+    {
+      "id": 9,
+      "postId": 6,
+      "userId": 6,
+      "type": "like"
+    }
+  ]
+}
