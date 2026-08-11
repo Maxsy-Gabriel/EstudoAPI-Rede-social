@@ -6,9 +6,11 @@ const { Pool } = require("pg");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
+const usaSSL = process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("railway.internal");
+
 const pool = new Pool({
   connectionString: process.env.DATABASE_URL,
-  ssl: { rejectUnauthorized: false },
+  ssl: usaSSL ? { rejectUnauthorized: false } : false,
 });
 
 // Middlewares:
