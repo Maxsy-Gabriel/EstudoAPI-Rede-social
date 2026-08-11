@@ -1,10 +1,15 @@
+require("dotenv").config();
 const express = require("express");
-const fs = require("fs").promises;
 const path = require("path");
+const { Pool } = require("pg");
 
 const app = express();
-const PORT = 3000;
-const ARQUIVO = path.join(__dirname, "db.json");
+const PORT = process.env.PORT || 3000;
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+  ssl: { rejectUnauthorized: false },
+});
 
 // Middlewares:
 
@@ -17,32 +22,39 @@ app.use((req, res, next) => {
 
 app.use("/app", express.static(path.join(__dirname, "public")));
 
-// Funções auxiliares:
+// Setup do banco:
 
-async function lerDados() {
-  try {
-    const conteudo = await fs.readFile(ARQUIVO, "utf-8");
-    return JSON.parse(conteudo);
-  } catch(erro) {
-    return { users: [], posts: [], comments: [], reactions: [] };
-  }
-}
+async function initDb() {
+  await pool.query(`
+    CREATE TABLE IF NOT EXISTS users (
+      id SERIAL PRIMARY KEY,
+      name TEXT NOT NULL,
+      username TEXT NOT NULL
+    );
 
-async function salvarDados(dados) {
-  //                 'null' pode filtrar campos (espera uma arrow function)
-  await fs.writeFile(ARQUIVO, JSON.stringify(dados, null, 2));
-}
+    CREATE TABLE IF NOT EXISTS posts (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      text TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
 
+    CREATE TABLE IF NOT EXISTS comments (
+      id SERIAL PRIMARY KEY,
+      post_id INTEGER NOT NULL REFERENCES posts(id),
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      text TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
 
-function gerarId(lista) {
-  if(lista.length === 0) {
-    return 1;
-  }
-
-  // Junta todos os ids achados em uma lista:
-  const ids = lista.map((item) => item.id);
-  // 'ids' são uma lista de números, os 3 pontos separam esse número por virgula:
-  return Math.max(...ids) + 1;
+    CREATE TABLE IF NOT EXISTS reactions (
+      id SERIAL PRIMARY KEY,
+      post_id INTEGER NOT NULL REFERENCES posts(id),
+      user_id INTEGER NOT NULL REFERENCES users(id),
+      type TEXT NOT NULL CHECK (type IN ('like', 'dislike')),
+      UNIQUE (post_id, user_id)
+    );
+  `);
 }
 
 app.get("/", (req, res) => {
@@ -54,48 +66,45 @@ app.get("/", (req, res) => {
 // ============================================================
 
 app.get("/users", async (req, res) => {
-  const dados = await lerDados();
-  res.json(dados.users);
+  const { rows } = await pool.query("SELECT * FROM users ORDER BY id");
+  res.json(rows);
 });
 
 app.get("/users/:id", async (req, res) => {
-  const dados = await lerDados();
   const id = Number(req.params.id);
-  const user = dados.users.find((u) => u.id === id);
+  const { rows } = await pool.query("SELECT * FROM users WHERE id = $1", [id]);
 
-  if(!user) {
+  if (!rows[0]) {
     return res.status(404).json({ message: "Usuário não encontrado" });
   }
 
-  res.json(user);
+  res.json(rows[0]);
 });
 
 app.post("/users", async (req, res) => {
-  const dados = await lerDados();
   const { name, username } = req.body;
 
-  if(!name || !username) {
+  if (!name || !username) {
     return res.status(400).json({ message: "name e username são obrigatórios" });
   }
 
-  const newUser = { id: gerarId(dados.users), name, username };
-  dados.users.push(newUser);
-  await salvarDados(dados);
-  res.status(201).json(newUser);
+  const { rows } = await pool.query(
+    "INSERT INTO users (name, username) VALUES ($1, $2) RETURNING *",
+    [name, username]
+  );
+
+  res.status(201).json(rows[0]);
 });
 
 // Não remove posts, comments e reactions do usuário, só o cadastro dele.
 app.delete("/users/:id", async (req, res) => {
-  const dados = await lerDados();
   const id = Number(req.params.id);
-  const tamanhoAntes = dados.users.length;
-  dados.users = dados.users.filter((u) => u.id !== id);
+  const { rowCount } = await pool.query("DELETE FROM users WHERE id = $1", [id]);
 
-  if(dados.users.length === tamanhoAntes) {
+  if (rowCount === 0) {
     return res.status(404).json({ message: "Usuário não encontrado" });
   }
 
-  await salvarDados(dados);
   res.status(204).send();
 });
 
@@ -104,33 +113,28 @@ app.delete("/users/:id", async (req, res) => {
 // ============================================================
 
 app.get("/posts", async (req, res) => {
-  const dados = await lerDados();
-  res.json(dados.posts);
+  const { rows } = await pool.query("SELECT * FROM posts ORDER BY id");
+  res.json(rows);
 });
 
 app.post("/posts", async (req, res) => {
-  const dados = await lerDados();
   const { userId, text } = req.body;
 
-  if(!userId || !text) {
+  if (!userId || !text) {
     return res.status(400).json({ message: "userId e text são obrigatórios" });
   }
 
-  const usuarioExiste = dados.users.some((u) => u.id === userId);
-  if(!usuarioExiste) {
+  const usuario = await pool.query("SELECT id FROM users WHERE id = $1", [userId]);
+  if (usuario.rowCount === 0) {
     return res.status(404).json({ message: "Usuário não encontrado" });
   }
 
-  const newPost = {
-    id: gerarId(dados.posts),
-    userId,
-    text,
-    createdAt: new Date().toISOString(),
-  };
+  const { rows } = await pool.query(
+    "INSERT INTO posts (user_id, text) VALUES ($1, $2) RETURNING *",
+    [userId, text]
+  );
 
-  dados.posts.push(newPost);
-  await salvarDados(dados);
-  res.status(201).json(newPost);
+  res.status(201).json(rows[0]);
 });
 
 // ============================================================
@@ -138,35 +142,29 @@ app.post("/posts", async (req, res) => {
 // ============================================================
 
 app.post("/posts/:postId/comments", async (req, res) => {
-  const dados = await lerDados();
   const postId = Number(req.params.postId);
   const { userId, text } = req.body;
 
-  const post = dados.posts.find((p) => p.id === postId);
-  if(!post) {
+  const post = await pool.query("SELECT id FROM posts WHERE id = $1", [postId]);
+  if (post.rowCount === 0) {
     return res.status(404).json({ message: "Post não encontrado" });
   }
 
-  if(!userId || !text) {
+  if (!userId || !text) {
     return res.status(400).json({ message: "userId e text são obrigatórios" });
   }
 
-  const usuarioExiste = dados.users.some((u) => u.id === userId);
-  if(!usuarioExiste) {
+  const usuario = await pool.query("SELECT id FROM users WHERE id = $1", [userId]);
+  if (usuario.rowCount === 0) {
     return res.status(404).json({ message: "Usuário não encontrado" });
   }
 
-  const newComment = {
-    id: gerarId(dados.comments),
-    postId,
-    userId,
-    text,
-    createdAt: new Date().toISOString(),
-  };
+  const { rows } = await pool.query(
+    "INSERT INTO comments (post_id, user_id, text) VALUES ($1, $2, $3) RETURNING *",
+    [postId, userId, text]
+  );
 
-  dados.comments.push(newComment);
-  await salvarDados(dados);
-  res.status(201).json(newComment);
+  res.status(201).json(rows[0]);
 });
 
 // ============================================================
@@ -174,39 +172,31 @@ app.post("/posts/:postId/comments", async (req, res) => {
 // ============================================================
 
 app.post("/posts/:postId/reactions", async (req, res) => {
-  const dados = await lerDados();
   const postId = Number(req.params.postId);
   const { userId, type } = req.body;
 
-  if(type !== "like" && type !== "dislike") {
+  if (type !== "like" && type !== "dislike") {
     return res.status(400).json({ message: "type deve ser like ou dislike" });
   }
 
-  const post = dados.posts.find((p) => p.id === postId);
-  if(!post) {
+  const post = await pool.query("SELECT id FROM posts WHERE id = $1", [postId]);
+  if (post.rowCount === 0) {
     return res.status(404).json({ message: "Post não encontrado" });
   }
 
-  const usuarioExiste = dados.users.some((u) => u.id === userId);
-  if(!usuarioExiste) {
+  const usuario = await pool.query("SELECT id FROM users WHERE id = $1", [userId]);
+  if (usuario.rowCount === 0) {
     return res.status(404).json({ message: "Usuário não encontrado" });
   }
 
-  const reactionExistente = dados.reactions.find(
-    (r) => r.postId === postId && r.userId === userId
+  const { rows } = await pool.query(
+    `INSERT INTO reactions (post_id, user_id, type) VALUES ($1, $2, $3)
+     ON CONFLICT (post_id, user_id) DO UPDATE SET type = EXCLUDED.type
+     RETURNING *`,
+    [postId, userId, type]
   );
 
-  // Usuário já reagiu a esse post: atualiza em vez de duplicar.
-  if(reactionExistente) {
-    reactionExistente.type = type;
-    await salvarDados(dados);
-    return res.json(reactionExistente);
-  }
-
-  const newReaction = { id: gerarId(dados.reactions), postId, userId, type };
-  dados.reactions.push(newReaction);
-  await salvarDados(dados);
-  res.status(201).json(newReaction);
+  res.status(201).json(rows[0]);
 });
 
 // ============================================================
@@ -214,20 +204,22 @@ app.post("/posts/:postId/reactions", async (req, res) => {
 // ============================================================
 
 app.get("/feed", async (req, res) => {
-  const dados = await lerDados();
+  const posts = (await pool.query("SELECT * FROM posts ORDER BY id")).rows;
+  const users = (await pool.query("SELECT * FROM users")).rows;
+  const comments = (await pool.query("SELECT * FROM comments")).rows;
+  const reactions = (await pool.query("SELECT * FROM reactions")).rows;
 
-  // Para cada post, busca (find/filter) o que pertence a ele nos outros arrays.
-  const feed = dados.posts.map((post) => {
-    const autorDoPost = dados.users.find((u) => u.id === post.userId);
-    const commentsDoPost = dados.comments.filter((c) => c.postId === post.id);
-    const reactionsDoPost = dados.reactions.filter((r) => r.postId === post.id);
+  const feed = posts.map((post) => {
+    const autorDoPost = users.find((u) => u.id === post.user_id);
+    const commentsDoPost = comments.filter((c) => c.post_id === post.id);
+    const reactionsDoPost = reactions.filter((r) => r.post_id === post.id);
     const likes = reactionsDoPost.filter((r) => r.type === "like").length;
     const dislikes = reactionsDoPost.filter((r) => r.type === "dislike").length;
 
     return {
       id: post.id,
       text: post.text,
-      createdAt: post.createdAt,
+      createdAt: post.created_at,
       user: autorDoPost ? { id: autorDoPost.id, name: autorDoPost.name } : null,
       comments: commentsDoPost,
       reactions: reactionsDoPost,
@@ -243,6 +235,13 @@ app.get("/feed", async (req, res) => {
 // START
 // ============================================================
 
-app.listen(PORT, () => {
-  console.log(`Servidor rodando em http://localhost:${PORT}`);
-});
+initDb()
+  .then(() => {
+    app.listen(PORT, () => {
+      console.log(`Servidor rodando em http://localhost:${PORT}`);
+    });
+  })
+  .catch((erro) => {
+    console.error("Erro ao inicializar o banco:", erro);
+    process.exit(1);
+  });
