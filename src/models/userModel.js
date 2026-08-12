@@ -18,11 +18,17 @@ async function existe(id) {
   return rowCount > 0;
 }
 
-// Isso cria um novo usuário:
-async function criar(name, username) {
+// Isso busca um usuário pelo username (usado no cadastro e no login):
+async function buscarPorUsername(username) {
+  const { rows } = await pool.query("SELECT * FROM users WHERE username = $1", [username]);
+  return rows[0];
+}
+
+// Isso cria um novo usuário (o password já deve chegar com hash pronto):
+async function criar(name, username, password) {
   const { rows } = await pool.query(
-    "INSERT INTO users (name, username) VALUES ($1, $2) RETURNING *",
-    [name, username]
+    "INSERT INTO users (name, username, password) VALUES ($1, $2, $3) RETURNING *",
+    [name, username, password]
   );
   return rows[0];
 }
@@ -33,4 +39,4 @@ async function remover(id) {
   return rowCount;
 }
 
-module.exports = { listarTodos, buscarPorId, existe, criar, remover };
+module.exports = { listarTodos, buscarPorId, buscarPorUsername, existe, criar, remover };

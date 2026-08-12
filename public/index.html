@@ -11,6 +11,7 @@
     rel="stylesheet"
   />
   <link rel="stylesheet" href="style.css" />
+  <script src="js/guard.js"></script>
 </head>
 <body>
   <nav class="topnav">
@@ -22,12 +23,6 @@
       <h2 id="people-title">Pessoas</h2>
 
       <ul id="users-list" class="people-list"></ul>
-
-      <form id="users-form" class="people-form">
-        <input id="user-name" type="text" placeholder="Nome" required />
-        <input id="user-username" type="text" placeholder="username" required />
-        <button type="submit">Adicionar</button>
-      </form>
     </aside>
 
     <main class="feed" id="feed" aria-labelledby="feed-title">
@@ -45,6 +40,7 @@
     <aside class="rail" aria-labelledby="identity-title">
       <h2 id="identity-title">Você é</h2>
       <div id="identity-card"></div>
+      <button id="logout-btn" type="button" class="logout-btn">Sair</button>
     </aside>
   </div>
 

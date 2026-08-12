@@ -3,7 +3,7 @@ import { usersList, identityCard, composerAvatar, postText, postsForm } from "..
 import { criarAvatar } from "../utils/dom.js";
 import { iniciais } from "../utils/format.js";
 
-export function renderPeopleList(onSelecionar, onDeletar) {
+export function renderPeopleList() {
   usersList.innerHTML = "";
 
   if (state.usuarios.length === 0) {
@@ -17,7 +17,6 @@ export function renderPeopleList(onSelecionar, onDeletar) {
   state.usuarios.forEach((user) => {
     const li = document.createElement("li");
     li.className = "person" + (user.id === state.identidadeAtualId ? " active" : "");
-    li.onclick = () => onSelecionar(user.id);
 
     const info = document.createElement("div");
     info.className = "person-info";
@@ -31,17 +30,7 @@ export function renderPeopleList(onSelecionar, onDeletar) {
     handle.textContent = `@${user.username}`;
 
     info.append(nome, handle);
-
-    const btnDeletar = document.createElement("button");
-    btnDeletar.className = "remove-btn";
-    btnDeletar.textContent = "×";
-    btnDeletar.setAttribute("aria-label", `Remover ${user.name}`);
-    btnDeletar.onclick = (e) => {
-      e.stopPropagation();
-      onDeletar(user.id);
-    };
-
-    li.append(criarAvatar(user), info, btnDeletar);
+    li.append(criarAvatar(user), info);
     usersList.appendChild(li);
   });
 }

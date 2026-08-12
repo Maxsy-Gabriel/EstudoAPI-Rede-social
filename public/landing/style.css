@@ -426,8 +426,9 @@ main {
   outline-offset: 2px;
 }
 
-.acesso-erro {
+.acesso-hint.acesso-erro {
   color: var(--accent);
+  font-weight: 600;
 }
 
 .tabs {

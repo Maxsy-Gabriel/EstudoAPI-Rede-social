@@ -2,6 +2,7 @@ import { state } from "../state.js";
 import * as userModel from "../models/userModel.js";
 import { mostrarMensagem } from "../utils/dom.js";
 import { usersList } from "../elements.js";
+import { logout } from "../auth.js";
 
 export async function carregarUsuarios() {
   try {
@@ -12,20 +13,11 @@ export async function carregarUsuarios() {
     return false;
   }
 
+  // Isso desloga o usuário se a conta dele não existir mais:
   if (state.identidadeAtualId && !state.usuarios.some((u) => u.id === state.identidadeAtualId)) {
-    state.identidadeAtualId = null;
-  }
-  if (!state.identidadeAtualId && state.usuarios.length > 0) {
-    state.identidadeAtualId = state.usuarios[0].id;
+    logout();
+    return false;
   }
 
   return true;
-}
-
-export async function criarUsuario(name, username) {
-  await userModel.criarUsuario(name, username);
-}
-
-export async function deletarUsuario(id) {
-  await userModel.deletarUsuario(id);
 }

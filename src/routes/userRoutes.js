@@ -7,6 +7,7 @@ const router = express.Router();
 router.get("/", userController.listar);
 router.get("/:id", userController.buscar);
 router.post("/", userController.criar);
+router.post("/login", userController.login);
 router.delete("/:id", userController.remover);
 
 module.exports = router;

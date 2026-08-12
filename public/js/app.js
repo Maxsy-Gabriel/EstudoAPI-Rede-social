@@ -1,15 +1,22 @@
 import { state } from "./state.js";
-import { usersList, usersForm, postsList, postsForm, postText } from "./elements.js";
+import { usersList, postsList, postsForm, postText, logoutBtn } from "./elements.js";
 import { mostrarMensagem } from "./utils/dom.js";
+import { getUsuarioLogado, logout } from "./auth.js";
 import * as userController from "./controllers/userController.js";
 import * as postController from "./controllers/postController.js";
 import { renderPeopleList, renderIdentity } from "./views/userView.js";
 import { renderFeed } from "./views/postView.js";
 
+// Isso trava a identidade do usuário na conta com que ele fez login (o guard.js já barrou quem não está logado):
+const usuarioLogado = getUsuarioLogado();
+if (usuarioLogado) {
+  state.identidadeAtualId = usuarioLogado.id;
+}
+
 async function atualizarUsuarios() {
   const ok = await userController.carregarUsuarios();
   if (ok) {
-    renderPeopleList(selecionarIdentidade, excluirUsuario);
+    renderPeopleList();
     renderIdentity();
   }
 }
@@ -19,19 +26,6 @@ async function atualizarFeed() {
   if (ok) {
     renderFeed(reagir, responder, toggleComments);
   }
-}
-
-function selecionarIdentidade(id) {
-  state.identidadeAtualId = id;
-  renderPeopleList(selecionarIdentidade, excluirUsuario);
-  renderIdentity();
-  renderFeed(reagir, responder, toggleComments);
-}
-
-async function excluirUsuario(id) {
-  await userController.deletarUsuario(id);
-  await atualizarUsuarios();
-  await atualizarFeed();
 }
 
 async function publicarPost(text) {
@@ -60,20 +54,7 @@ function toggleComments(postId) {
   renderFeed(reagir, responder, toggleComments);
 }
 
-usersForm.addEventListener("submit", async (e) => {
-  e.preventDefault();
-  const botao = usersForm.querySelector("button");
-  const name = document.getElementById("user-name").value;
-  const username = document.getElementById("user-username").value;
-
-  botao.disabled = true;
-  botao.textContent = "Adicionando...";
-  await userController.criarUsuario(name, username);
-  await atualizarUsuarios();
-  usersForm.reset();
-  botao.disabled = false;
-  botao.textContent = "Adicionar";
-});
+logoutBtn.addEventListener("click", logout);
 
 postsForm.addEventListener("submit", async (e) => {
   e.preventDefault();

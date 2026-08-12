@@ -20,8 +20,11 @@ async function initDb() {
     CREATE TABLE IF NOT EXISTS users (
       id SERIAL PRIMARY KEY,
       name TEXT NOT NULL,
-      username TEXT NOT NULL
+      username TEXT NOT NULL,
+      password TEXT NOT NULL
     );
+
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS password TEXT NOT NULL DEFAULT '';
 
     CREATE TABLE IF NOT EXISTS posts (
       id SERIAL PRIMARY KEY,

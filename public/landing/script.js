@@ -4,6 +4,12 @@ const abrirModalBtns = document.querySelectorAll("[data-abrir-modal]");
 const tabs = document.querySelectorAll(".tab");
 const forms = document.querySelectorAll(".acesso-form");
 const criarErro = document.getElementById("criar-erro");
+const entrarErro = document.getElementById("entrar-erro");
+
+// Isso guarda o usuário logado (mesma chave que o app.js lê em /app):
+function salvarUsuarioLogado(usuario) {
+  localStorage.setItem("lindosSocial.usuario", JSON.stringify(usuario));
+}
 
 function selecionarTab(nome) {
   tabs.forEach((tab) => tab.classList.toggle("active", tab.dataset.tab === nome));
@@ -37,10 +43,42 @@ tabs.forEach((tab) => {
   tab.addEventListener("click", () => selecionarTab(tab.dataset.tab));
 });
 
-// Isso ainda não verifica senha (não existe autenticação ainda), só entra direto no feed:
-document.querySelector('[data-form="entrar"]').addEventListener("submit", (e) => {
+// Isso confere usuário e senha na API antes de entrar no feed:
+document.querySelector('[data-form="entrar"]').addEventListener("submit", async (e) => {
   e.preventDefault();
-  window.location.href = "/app";
+  const form = e.target;
+  const botao = form.querySelector("button[type=submit]");
+  const username = form.elements.username.value;
+  const password = form.elements.password.value;
+
+  entrarErro.classList.add("hidden");
+  botao.disabled = true;
+  botao.textContent = "Entrando...";
+
+  try {
+    const res = await fetch("/users/login", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ username, password }),
+    });
+
+    if (!res.ok) {
+      const erro = await res.json();
+      entrarErro.textContent = erro.message || "Não foi possível entrar.";
+      entrarErro.classList.remove("hidden");
+      botao.disabled = false;
+      botao.textContent = "Entrar";
+      return;
+    }
+
+    salvarUsuarioLogado(await res.json());
+    window.location.href = "/app";
+  } catch (erro) {
+    entrarErro.textContent = "Não foi possível falar com o servidor.";
+    entrarErro.classList.remove("hidden");
+    botao.disabled = false;
+    botao.textContent = "Entrar";
+  }
 });
 
 // Isso cria o usuário de verdade na API, e só então entra no feed:
@@ -50,6 +88,7 @@ document.querySelector('[data-form="criar"]').addEventListener("submit", async (
   const botao = form.querySelector("button[type=submit]");
   const name = form.elements.name.value;
   const username = form.elements.username.value;
+  const password = form.elements.password.value;
 
   criarErro.classList.add("hidden");
   botao.disabled = true;
@@ -59,7 +98,7 @@ document.querySelector('[data-form="criar"]').addEventListener("submit", async (
     const res = await fetch("/users", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, username }),
+      body: JSON.stringify({ name, username, password }),
     });
 
     if (!res.ok) {
@@ -71,6 +110,7 @@ document.querySelector('[data-form="criar"]').addEventListener("submit", async (
       return;
     }
 
+    salvarUsuarioLogado(await res.json());
     window.location.href = "/app";
   } catch (erro) {
     criarErro.textContent = "Não foi possível falar com o servidor.";
