@@ -17,6 +17,11 @@ export function logout() {
   window.location.href = "/";
 }
 
+// Isso atualiza o usuário logado no localStorage (usado depois de editar o perfil):
+export function salvarUsuarioLogado(usuario) {
+  localStorage.setItem(CHAVE, JSON.stringify(usuario));
+}
+
 // Isso avisa o backend que esse usuário está ativo agora (usado pra bolinha verde de online):
 export function iniciarHeartbeat(usuario) {
   if (!usuario) return;

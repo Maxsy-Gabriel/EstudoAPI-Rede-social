@@ -1,6 +1,7 @@
 const express = require("express");
 const userController = require("../controllers/userController");
 const exigirAdmin = require("../middlewares/exigirAdmin");
+const exigirMesmoUsuario = require("../middlewares/exigirMesmoUsuario");
 
 const router = express.Router();
 
@@ -12,6 +13,8 @@ router.post("/", userController.criar);
 router.post("/login", userController.login);
 router.post("/:id/heartbeat", userController.heartbeat);
 router.patch("/:id/cargo", exigirAdmin, userController.atualizarCargo);
+router.patch("/:id/perfil", exigirMesmoUsuario, userController.atualizarPerfil);
+router.patch("/:id/senha", exigirMesmoUsuario, userController.atualizarSenha);
 router.delete("/:id", exigirAdmin, userController.remover);
 
 module.exports = router;

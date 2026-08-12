@@ -2,6 +2,7 @@ const bcrypt = require("bcryptjs");
 const userModel = require("../models/userModel");
 
 const CARGOS_VALIDOS = ["admin", "user"];
+const ESTADOS_CIVIS_VALIDOS = ["solteiro", "namorando", "casado", "divorciado", "viuvo"];
 
 // Isso tira o password do usuário antes de mandar pro front-end:
 function semPassword(usuario) {
@@ -90,6 +91,70 @@ async function atualizarCargo(req, res) {
   res.json(semPassword(usuarioAtualizado));
 }
 
+// Isso atualiza o perfil (rota já passa pelo exigirMesmoUsuario; nunca mexe em username nem password):
+async function atualizarPerfil(req, res) {
+  const id = Number(req.params.id);
+  const { name, sobre, idade, estadoCivil, avatar } = req.body;
+
+  if (!name || !name.trim()) {
+    return res.status(400).json({ message: "name é obrigatório" });
+  }
+
+  if (sobre && sobre.length > 500) {
+    return res.status(400).json({ message: "sobre pode ter no máximo 500 caracteres" });
+  }
+
+  if (idade !== undefined && idade !== null && idade !== "") {
+    const idadeNumero = Number(idade);
+    if (!Number.isInteger(idadeNumero) || idadeNumero < 0 || idadeNumero > 120) {
+      return res.status(400).json({ message: "idade inválida" });
+    }
+  }
+
+  if (estadoCivil && !ESTADOS_CIVIS_VALIDOS.includes(estadoCivil)) {
+    return res.status(400).json({ message: "estadoCivil inválido" });
+  }
+
+  if (avatar && avatar.length > 2_000_000) {
+    return res.status(400).json({ message: "Imagem muito grande" });
+  }
+
+  const usuarioAtualizado = await userModel.atualizarPerfil(id, {
+    name: name.trim(),
+    sobre: sobre || null,
+    idade: idade ? Number(idade) : null,
+    estadoCivil: estadoCivil || null,
+    avatar: avatar || null,
+  });
+
+  res.json(semPassword(usuarioAtualizado));
+}
+
+// Isso troca a senha (rota já passa pelo exigirMesmoUsuario; exige confirmar a senha atual):
+async function atualizarSenha(req, res) {
+  const id = Number(req.params.id);
+  const { senhaAtual, novaSenha } = req.body;
+
+  if (!senhaAtual || !novaSenha) {
+    return res.status(400).json({ message: "senhaAtual e novaSenha são obrigatórias" });
+  }
+
+  if (novaSenha.length < 6) {
+    return res.status(400).json({ message: "novaSenha precisa ter pelo menos 6 caracteres" });
+  }
+
+  const usuario = await userModel.buscarPorId(id);
+  const senhaValida = usuario && (await bcrypt.compare(senhaAtual, usuario.password));
+
+  if (!senhaValida) {
+    return res.status(401).json({ message: "Senha atual incorreta" });
+  }
+
+  const passwordHash = await bcrypt.hash(novaSenha, 10);
+  await userModel.atualizarSenha(id, passwordHash);
+  res.status(204).send();
+}
+
 // Isso marca o usuário como ativo agora (chamado periodicamente pelo front-end):
 async function heartbeat(req, res) {
   const id = Number(req.params.id);
@@ -121,6 +186,8 @@ module.exports = {
   criar,
   login,
   atualizarCargo,
+  atualizarPerfil,
+  atualizarSenha,
   heartbeat,
   remover,
 };

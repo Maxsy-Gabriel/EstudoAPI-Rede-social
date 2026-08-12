@@ -4,6 +4,9 @@ import { criarAvatar } from "../js/utils/dom.js";
 const usuarioLogado = getUsuarioLogado();
 const corpo = document.getElementById("admin-tabela-corpo");
 const logoutBtn = document.getElementById("logout-btn");
+const perfilLink = document.getElementById("perfil-link");
+
+perfilLink.appendChild(criarAvatar(usuarioLogado));
 
 async function carregarUsuarios() {
   try {

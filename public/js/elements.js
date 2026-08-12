@@ -4,5 +4,6 @@ export const postsForm = document.getElementById("posts-form");
 export const identityCard = document.getElementById("identity-card");
 export const logoutBtn = document.getElementById("logout-btn");
 export const adminLink = document.getElementById("admin-link");
+export const perfilLink = document.getElementById("perfil-link");
 export const composerAvatar = document.getElementById("composer-avatar");
 export const postText = document.getElementById("post-text");

@@ -86,6 +86,12 @@ async function initDb() {
 
     ALTER TABLE reactions DROP CONSTRAINT IF EXISTS reactions_post_id_fkey;
     ALTER TABLE reactions ADD CONSTRAINT reactions_post_id_fkey FOREIGN KEY (post_id) REFERENCES posts(id) ON DELETE CASCADE;
+
+    -- Isso adiciona os campos do perfil (foto em base64, sobre, idade, estado civil):
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS avatar TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS sobre TEXT;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS idade INTEGER;
+    ALTER TABLE users ADD COLUMN IF NOT EXISTS estado_civil TEXT;
   `);
 
   await hashearSenhasEmTextoPuro();

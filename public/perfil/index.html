@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Meu Perfil — Lindos Social</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="guard.js"></script>
+</head>
+<body>
+  <nav class="topnav">
+    <span class="topnav-dot" aria-hidden="true"></span>
+    <div class="topnav-links">
+      <a href="/app">Feed</a>
+      <a href="/app/admin" id="admin-link" class="hidden">Administração</a>
+    </div>
+  </nav>
+
+  <div class="perfil-layout">
+    <div class="perfil-head">
+      <h1>Meu Perfil</h1>
+      <button id="logout-btn" type="button" class="logout-btn">Sair</button>
+    </div>
+
+    <section class="perfil-foto">
+      <span id="avatar-preview" class="avatar avatar-grande"></span>
+      <div>
+        <button id="trocar-foto-btn" type="button" class="btn btn-ghost">Alterar foto</button>
+        <input id="avatar-input" type="file" accept="image/*" class="sr-only" />
+        <p class="perfil-hint">JPG ou PNG. A imagem é recortada em quadrado.</p>
+      </div>
+    </section>
+
+    <form id="perfil-form" class="perfil-form">
+      <label>
+        Nome
+        <input id="perfil-name" type="text" required />
+      </label>
+
+      <label>
+        Username
+        <input id="perfil-username" type="text" disabled />
+      </label>
+      <p class="perfil-hint">O username não pode ser alterado.</p>
+
+      <label>
+        Sobre
+        <textarea id="perfil-sobre" rows="3" maxlength="500" placeholder="Fale um pouco sobre você"></textarea>
+      </label>
+
+      <label>
+        Idade
+        <input id="perfil-idade" type="number" min="0" max="120" />
+      </label>
+
+      <label>
+        Estado civil
+        <select id="perfil-estado-civil">
+          <option value="">Prefiro não dizer</option>
+          <option value="solteiro">Solteiro(a)</option>
+          <option value="namorando">Namorando</option>
+          <option value="casado">Casado(a)</option>
+          <option value="divorciado">Divorciado(a)</option>
+          <option value="viuvo">Viúvo(a)</option>
+        </select>
+      </label>
+
+      <p class="perfil-erro hidden" id="perfil-erro"></p>
+      <p class="perfil-sucesso hidden" id="perfil-sucesso">Perfil atualizado.</p>
+
+      <button type="submit" class="btn btn-primary">Salvar perfil</button>
+    </form>
+
+    <form id="senha-form" class="perfil-form">
+      <h2>Alterar senha</h2>
+
+      <label>
+        Senha atual
+        <input id="senha-atual" type="password" required />
+      </label>
+
+      <label>
+        Nova senha
+        <input id="nova-senha" type="password" required minlength="6" />
+      </label>
+
+      <label>
+        Confirmar nova senha
+        <input id="confirmar-senha" type="password" required minlength="6" />
+      </label>
+
+      <p class="perfil-erro hidden" id="senha-erro"></p>
+      <p class="perfil-sucesso hidden" id="senha-sucesso">Senha alterada.</p>
+
+      <button type="submit" class="btn btn-ghost">Salvar senha</button>
+    </form>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

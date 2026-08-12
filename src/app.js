@@ -4,8 +4,8 @@ const routes = require("./routes");
 
 const app = express();
 
-// Isso permite receber JSON no corpo das requisições:
-app.use(express.json());
+// Isso permite receber JSON no corpo das requisições (limite maior por causa da foto de perfil em base64):
+app.use(express.json({ limit: "2mb" }));
 
 // Isso registra cada requisição recebida no console:
 app.use((req, res, next) => {

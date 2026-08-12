@@ -57,6 +57,20 @@ async function atualizarUltimoAcesso(id) {
   await pool.query("UPDATE users SET last_seen_at = now() WHERE id = $1", [id]);
 }
 
+// Isso atualiza os dados do perfil (nunca mexe em username nem password):
+async function atualizarPerfil(id, { name, sobre, idade, estadoCivil, avatar }) {
+  await pool.query(
+    `UPDATE users SET name = $2, sobre = $3, idade = $4, estado_civil = $5, avatar = $6 WHERE id = $1`,
+    [id, name, sobre, idade, estadoCivil, avatar]
+  );
+  return buscarPorId(id);
+}
+
+// Isso troca a senha (já deve chegar com hash pronto):
+async function atualizarSenha(id, passwordHash) {
+  await pool.query("UPDATE users SET password = $1 WHERE id = $2", [passwordHash, id]);
+}
+
 // Isso remove um usuário pelo id:
 async function remover(id) {
   const { rowCount } = await pool.query("DELETE FROM users WHERE id = $1", [id]);
@@ -71,5 +85,7 @@ module.exports = {
   criar,
   atualizarCargo,
   atualizarUltimoAcesso,
+  atualizarPerfil,
+  atualizarSenha,
   remover,
 };

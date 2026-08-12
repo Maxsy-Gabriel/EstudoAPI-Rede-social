@@ -14,7 +14,17 @@ export function criarAvatar(user) {
 
   const avatar = document.createElement("span");
   avatar.className = user ? "avatar" : "avatar removed";
-  avatar.textContent = user ? iniciais(user.name) : "?";
+
+  if (user?.avatar) {
+    avatar.classList.add("avatar-com-foto");
+    const img = document.createElement("img");
+    img.src = user.avatar;
+    img.alt = "";
+    avatar.appendChild(img);
+  } else {
+    avatar.textContent = user ? iniciais(user.name) : "?";
+  }
+
   wrap.appendChild(avatar);
 
   if (user?.online) {
