@@ -6,7 +6,14 @@ const corpo = document.getElementById("admin-tabela-corpo");
 const logoutBtn = document.getElementById("logout-btn");
 const perfilLink = document.getElementById("perfil-link");
 
-perfilLink.appendChild(criarAvatar(usuarioLogado));
+// Isso usa sempre o dado fresco do banco (não o que ficou salvo no localStorage) pro avatar:
+async function atualizarAvatarTopnav() {
+  const res = await fetch(`/users/${usuarioLogado.id}`);
+  if (!res.ok) return;
+
+  perfilLink.innerHTML = "";
+  perfilLink.appendChild(criarAvatar(await res.json()));
+}
 
 async function carregarUsuarios() {
   try {
@@ -102,4 +109,5 @@ async function excluirUsuario(usuario) {
 
 logoutBtn.addEventListener("click", logout);
 iniciarHeartbeat(usuarioLogado);
+atualizarAvatarTopnav();
 carregarUsuarios();

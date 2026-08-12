@@ -11,19 +11,29 @@ import { renderFeed } from "./views/postView.js";
 const usuarioLogado = getUsuarioLogado();
 if (usuarioLogado) {
   state.identidadeAtualId = usuarioLogado.id;
-  if (usuarioLogado.role === "admin") {
+}
+iniciarHeartbeat(usuarioLogado);
+
+// Isso usa sempre o dado fresco do banco (não o que ficou salvo no localStorage) pro avatar e o link de admin:
+function atualizarTopnav() {
+  const user = state.usuarios.find((u) => u.id === state.identidadeAtualId);
+  if (!user) return;
+
+  if (user.role === "admin") {
     state.isAdmin = true;
     adminLink.classList.remove("hidden");
   }
-  perfilLink.appendChild(criarAvatar(usuarioLogado));
+
+  perfilLink.innerHTML = "";
+  perfilLink.appendChild(criarAvatar(user));
 }
-iniciarHeartbeat(usuarioLogado);
 
 async function atualizarUsuarios() {
   const ok = await userController.carregarUsuarios();
   if (ok) {
     renderPeopleList();
     renderIdentity();
+    atualizarTopnav();
   }
 }
 

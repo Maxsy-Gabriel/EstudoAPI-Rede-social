@@ -61,7 +61,16 @@ export function renderIdentity() {
   }
 
   composerAvatar.className = user ? "avatar" : "avatar removed";
-  composerAvatar.textContent = user ? iniciais(user.name) : "?";
+  composerAvatar.innerHTML = "";
+  if (user?.avatar) {
+    composerAvatar.classList.add("avatar-com-foto");
+    const img = document.createElement("img");
+    img.src = user.avatar;
+    img.alt = "";
+    composerAvatar.appendChild(img);
+  } else {
+    composerAvatar.textContent = user ? iniciais(user.name) : "?";
+  }
   postText.disabled = !user;
   postText.placeholder = user ? "O que você está pensando?" : "Escolha alguém em Pessoas para postar";
   postsForm.querySelector("button").disabled = !user;
