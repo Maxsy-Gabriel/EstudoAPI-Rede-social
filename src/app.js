@@ -13,6 +13,9 @@ app.use((req, res, next) => {
   next();
 });
 
+// Isso serve a landing page/login na raiz do site:
+app.use(express.static(path.join(__dirname, "../public/landing")));
+
 // Isso serve os arquivos estáticos do front-end:
 app.use("/app", express.static(path.join(__dirname, "../public")));
 

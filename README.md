@@ -1,4 +1,4 @@
-# Mini Rede Social API — Etapa Inicial
+# Lindos Social API — Etapa Inicial
 
 Projeto de treinamento com **Node.js + ExpressJS**.
 

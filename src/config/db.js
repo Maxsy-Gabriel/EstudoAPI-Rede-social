@@ -1,8 +1,12 @@
 require("dotenv").config();
 const { Pool } = require("pg");
 
-// Isso decide se a conexão precisa de SSL (a rede interna do Railway não usa):
-const usaSSL = process.env.DATABASE_URL && !process.env.DATABASE_URL.includes("railway.internal");
+// Isso decide se a conexão precisa de SSL (a rede interna do Railway e o túnel local não usam):
+const usaSSL =
+  process.env.DATABASE_URL &&
+  !process.env.DATABASE_URL.includes("railway.internal") &&
+  !process.env.DATABASE_URL.includes("127.0.0.1") &&
+  !process.env.DATABASE_URL.includes("localhost");
 
 // Isso cria o pool de conexões com o Postgres:
 const pool = new Pool({
