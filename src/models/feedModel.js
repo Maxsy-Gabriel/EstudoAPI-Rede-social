@@ -32,7 +32,9 @@ async function montar() {
       id: post.id,
       text: post.text,
       createdAt: post.created_at,
-      user: autorDoPost ? { id: autorDoPost.id, name: autorDoPost.name } : null,
+      user: autorDoPost
+        ? { id: autorDoPost.id, name: autorDoPost.name, online: autorDoPost.online }
+        : null,
       comments: commentsDoPost,
       reactions: reactionsMapeadas,
       likes,

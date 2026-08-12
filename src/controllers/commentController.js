@@ -25,4 +25,16 @@ async function criar(req, res) {
   res.status(201).json(novoComentario);
 }
 
-module.exports = { criar };
+// Isso remove um comentário (rota já passa pelo exigirAdmin):
+async function remover(req, res) {
+  const id = Number(req.params.id);
+  const rowCount = await commentModel.remover(id);
+
+  if (rowCount === 0) {
+    return res.status(404).json({ message: "Comentário não encontrado" });
+  }
+
+  res.status(204).send();
+}
+
+module.exports = { criar, remover };

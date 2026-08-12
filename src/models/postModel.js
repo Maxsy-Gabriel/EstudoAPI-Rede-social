@@ -21,4 +21,10 @@ async function criar(userId, text) {
   return rows[0];
 }
 
-module.exports = { listarTodos, existe, criar };
+// Isso remove um post (comentários e reações dele saem junto):
+async function remover(id) {
+  const { rowCount } = await pool.query("DELETE FROM posts WHERE id = $1", [id]);
+  return rowCount;
+}
+
+module.exports = { listarTodos, existe, criar, remover };

@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Administração — Lindos Social</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="stylesheet" href="../style.css" />
+  <link rel="stylesheet" href="style.css" />
+  <script src="guard.js"></script>
+</head>
+<body>
+  <nav class="topnav">
+    <span class="topnav-dot" aria-hidden="true"></span>
+    <a href="/app">Feed</a>
+  </nav>
+
+  <div class="admin-layout">
+    <div class="admin-head">
+      <h1>Administração</h1>
+      <button id="logout-btn" type="button" class="logout-btn">Sair</button>
+    </div>
+
+    <table class="admin-table">
+      <thead>
+        <tr>
+          <th>Pessoa</th>
+          <th>Cargo</th>
+          <th></th>
+        </tr>
+      </thead>
+      <tbody id="admin-tabela-corpo">
+        <tr>
+          <td colspan="3" class="empty">Carregando...</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <script type="module" src="script.js"></script>
+</body>
+</html>

@@ -17,4 +17,10 @@ async function criarOuAtualizar(postId, userId, type) {
   return rows[0];
 }
 
-module.exports = { listarTodos, criarOuAtualizar };
+// Isso remove uma reação:
+async function remover(id) {
+  const { rowCount } = await pool.query("DELETE FROM reactions WHERE id = $1", [id]);
+  return rowCount;
+}
+
+module.exports = { listarTodos, criarOuAtualizar, remover };

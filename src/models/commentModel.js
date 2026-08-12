@@ -15,4 +15,10 @@ async function criar(postId, userId, text) {
   return rows[0];
 }
 
-module.exports = { listarTodos, criar };
+// Isso remove um comentário:
+async function remover(id) {
+  const { rowCount } = await pool.query("DELETE FROM comments WHERE id = $1", [id]);
+  return rowCount;
+}
+
+module.exports = { listarTodos, criar, remover };

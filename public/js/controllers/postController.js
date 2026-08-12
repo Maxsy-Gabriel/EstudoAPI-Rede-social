@@ -26,3 +26,11 @@ export async function reagir(postId, userId, type) {
 export async function responder(postId, userId, text) {
   await postModel.responder(postId, userId, text);
 }
+
+export async function excluirPost(postId, adminId) {
+  await postModel.excluirPost(postId, adminId);
+}
+
+export async function excluirComentario(postId, commentId, adminId) {
+  await postModel.excluirComentario(postId, commentId, adminId);
+}

@@ -9,8 +9,20 @@ export function mostrarMensagem(lista, texto) {
 }
 
 export function criarAvatar(user) {
+  const wrap = document.createElement("span");
+  wrap.className = "avatar-wrap";
+
   const avatar = document.createElement("span");
   avatar.className = user ? "avatar" : "avatar removed";
   avatar.textContent = user ? iniciais(user.name) : "?";
-  return avatar;
+  wrap.appendChild(avatar);
+
+  if (user?.online) {
+    const bolinha = document.createElement("span");
+    bolinha.className = "status-dot";
+    bolinha.setAttribute("aria-label", "Online");
+    wrap.appendChild(bolinha);
+  }
+
+  return wrap;
 }

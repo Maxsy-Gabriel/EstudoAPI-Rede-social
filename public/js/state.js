@@ -3,4 +3,5 @@ export const state = {
   feed: [],
   identidadeAtualId: null,
   comentariosAbertos: new Set(),
+  isAdmin: false,
 };

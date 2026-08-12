@@ -25,4 +25,16 @@ async function criar(req, res) {
   res.status(201).json(reacao);
 }
 
-module.exports = { criar };
+// Isso remove uma reação (rota já passa pelo exigirAdmin):
+async function remover(req, res) {
+  const id = Number(req.params.id);
+  const rowCount = await reactionModel.remover(id);
+
+  if (rowCount === 0) {
+    return res.status(404).json({ message: "Reação não encontrada" });
+  }
+
+  res.status(204).send();
+}
+
+module.exports = { criar, remover };

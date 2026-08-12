@@ -24,4 +24,16 @@ async function criar(req, res) {
   res.status(201).json(novoPost);
 }
 
-module.exports = { listar, criar };
+// Isso remove um post (rota já passa pelo exigirAdmin):
+async function remover(req, res) {
+  const id = Number(req.params.id);
+  const rowCount = await postModel.remover(id);
+
+  if (rowCount === 0) {
+    return res.status(404).json({ message: "Post não encontrado" });
+  }
+
+  res.status(204).send();
+}
+
+module.exports = { listar, criar, remover };

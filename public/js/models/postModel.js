@@ -26,3 +26,17 @@ export async function responder(postId, userId, text) {
     body: JSON.stringify({ userId, text }),
   });
 }
+
+export async function excluirPost(postId, adminId) {
+  await fetch(`/posts/${postId}`, {
+    method: "DELETE",
+    headers: { "X-User-Id": adminId },
+  });
+}
+
+export async function excluirComentario(postId, commentId, adminId) {
+  await fetch(`/posts/${postId}/comments/${commentId}`, {
+    method: "DELETE",
+    headers: { "X-User-Id": adminId },
+  });
+}

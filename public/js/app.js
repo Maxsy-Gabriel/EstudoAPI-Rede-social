@@ -1,7 +1,7 @@
 import { state } from "./state.js";
-import { usersList, postsList, postsForm, postText, logoutBtn } from "./elements.js";
+import { usersList, postsList, postsForm, postText, logoutBtn, adminLink } from "./elements.js";
 import { mostrarMensagem } from "./utils/dom.js";
-import { getUsuarioLogado, logout } from "./auth.js";
+import { getUsuarioLogado, logout, iniciarHeartbeat } from "./auth.js";
 import * as userController from "./controllers/userController.js";
 import * as postController from "./controllers/postController.js";
 import { renderPeopleList, renderIdentity } from "./views/userView.js";
@@ -11,7 +11,12 @@ import { renderFeed } from "./views/postView.js";
 const usuarioLogado = getUsuarioLogado();
 if (usuarioLogado) {
   state.identidadeAtualId = usuarioLogado.id;
+  if (usuarioLogado.role === "admin") {
+    state.isAdmin = true;
+    adminLink.classList.remove("hidden");
+  }
 }
+iniciarHeartbeat(usuarioLogado);
 
 async function atualizarUsuarios() {
   const ok = await userController.carregarUsuarios();
@@ -24,7 +29,7 @@ async function atualizarUsuarios() {
 async function atualizarFeed() {
   const ok = await postController.carregarFeed();
   if (ok) {
-    renderFeed(reagir, responder, toggleComments);
+    renderFeed(reagir, responder, toggleComments, excluirPost, excluirComentario);
   }
 }
 
@@ -33,10 +38,38 @@ async function publicarPost(text) {
   await atualizarFeed();
 }
 
+// Isso atualiza a reação na tela na hora, sem esperar o servidor nem recarregar o feed inteiro:
+function aplicarReacaoOtimista(post, tipo) {
+  const minhaReacao = post.reactions.find((r) => r.userId === state.identidadeAtualId);
+
+  if (minhaReacao) {
+    if (minhaReacao.type === tipo) return;
+    if (minhaReacao.type === "like") post.likes--;
+    if (minhaReacao.type === "dislike") post.dislikes--;
+    minhaReacao.type = tipo;
+  } else {
+    post.reactions.push({ postId: post.id, userId: state.identidadeAtualId, type: tipo });
+  }
+
+  if (tipo === "like") post.likes++;
+  if (tipo === "dislike") post.dislikes++;
+}
+
 async function reagir(postId, tipo) {
   if (!state.identidadeAtualId) return;
-  await postController.reagir(postId, state.identidadeAtualId, tipo);
-  await atualizarFeed();
+
+  const post = state.feed.find((p) => p.id === postId);
+  if (!post) return;
+
+  aplicarReacaoOtimista(post, tipo);
+  renderFeed(reagir, responder, toggleComments, excluirPost, excluirComentario);
+
+  try {
+    await postController.reagir(postId, state.identidadeAtualId, tipo);
+  } catch (erro) {
+    console.error("Falha ao reagir:", erro);
+    await atualizarFeed();
+  }
 }
 
 async function responder(postId, texto) {
@@ -51,7 +84,19 @@ function toggleComments(postId) {
   } else {
     state.comentariosAbertos.add(postId);
   }
-  renderFeed(reagir, responder, toggleComments);
+  renderFeed(reagir, responder, toggleComments, excluirPost, excluirComentario);
+}
+
+async function excluirPost(postId) {
+  if (!window.confirm("Excluir este post? Isso não pode ser desfeito.")) return;
+  await postController.excluirPost(postId, usuarioLogado.id);
+  await atualizarFeed();
+}
+
+async function excluirComentario(postId, commentId) {
+  if (!window.confirm("Excluir este comentário? Isso não pode ser desfeito.")) return;
+  await postController.excluirComentario(postId, commentId, usuarioLogado.id);
+  await atualizarFeed();
 }
 
 logoutBtn.addEventListener("click", logout);

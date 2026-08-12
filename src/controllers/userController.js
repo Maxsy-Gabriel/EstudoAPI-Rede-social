@@ -1,6 +1,8 @@
 const bcrypt = require("bcryptjs");
 const userModel = require("../models/userModel");
 
+const CARGOS_VALIDOS = ["admin", "user"];
+
 // Isso tira o password do usuário antes de mandar pro front-end:
 function semPassword(usuario) {
   if (!usuario) return usuario;
@@ -10,6 +12,12 @@ function semPassword(usuario) {
 
 // Isso lista todos os usuários:
 async function listar(req, res) {
+  const usuarios = await userModel.listarTodos();
+  res.json(usuarios.map(semPassword));
+}
+
+// Isso lista todos os usuários pra tela de administração (rota já passa pelo exigirAdmin):
+async function listarParaAdmin(req, res) {
   const usuarios = await userModel.listarTodos();
   res.json(usuarios.map(semPassword));
 }
@@ -59,12 +67,44 @@ async function login(req, res) {
     return res.status(401).json({ message: "Usuário ou senha inválidos" });
   }
 
+  await userModel.atualizarUltimoAcesso(usuario.id);
+  usuario.online = true;
   res.json(semPassword(usuario));
 }
 
-// Isso remove um usuário (não remove posts, comments e reactions dele, só o cadastro):
+// Isso troca o cargo de um usuário (rota já passa pelo exigirAdmin):
+async function atualizarCargo(req, res) {
+  const id = Number(req.params.id);
+  const { role } = req.body;
+
+  if (!CARGOS_VALIDOS.includes(role)) {
+    return res.status(400).json({ message: "role deve ser 'admin' ou 'user'" });
+  }
+
+  const existe = await userModel.existe(id);
+  if (!existe) {
+    return res.status(404).json({ message: "Usuário não encontrado" });
+  }
+
+  const usuarioAtualizado = await userModel.atualizarCargo(id, role);
+  res.json(semPassword(usuarioAtualizado));
+}
+
+// Isso marca o usuário como ativo agora (chamado periodicamente pelo front-end):
+async function heartbeat(req, res) {
+  const id = Number(req.params.id);
+  await userModel.atualizarUltimoAcesso(id);
+  res.status(204).send();
+}
+
+// Isso remove um usuário (rota já passa pelo exigirAdmin; posts, comments e reactions dele ficam como "Usuário removido"):
 async function remover(req, res) {
   const id = Number(req.params.id);
+
+  if (id === req.solicitante.id) {
+    return res.status(400).json({ message: "Você não pode excluir sua própria conta por aqui" });
+  }
+
   const rowCount = await userModel.remover(id);
 
   if (rowCount === 0) {
@@ -74,4 +114,13 @@ async function remover(req, res) {
   res.status(204).send();
 }
 
-module.exports = { listar, buscar, criar, remover, login };
+module.exports = {
+  listar,
+  listarParaAdmin,
+  buscar,
+  criar,
+  login,
+  atualizarCargo,
+  heartbeat,
+  remover,
+};

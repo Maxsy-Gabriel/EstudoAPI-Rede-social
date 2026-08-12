@@ -3,7 +3,7 @@ import { postsList } from "../elements.js";
 import { mostrarMensagem, criarAvatar } from "../utils/dom.js";
 import { tempoRelativo } from "../utils/format.js";
 
-export function renderFeed(onReagir, onResponder, onToggleComments) {
+export function renderFeed(onReagir, onResponder, onToggleComments, onExcluirPost, onExcluirComentario) {
   postsList.innerHTML = "";
 
   if (state.feed.length === 0) {
@@ -13,11 +13,13 @@ export function renderFeed(onReagir, onResponder, onToggleComments) {
 
   const maisRecentesPrimeiro = [...state.feed].reverse();
   maisRecentesPrimeiro.forEach((post) =>
-    postsList.appendChild(criarCardDePost(post, onReagir, onResponder, onToggleComments))
+    postsList.appendChild(
+      criarCardDePost(post, onReagir, onResponder, onToggleComments, onExcluirPost, onExcluirComentario)
+    )
   );
 }
 
-function criarCardDePost(post, onReagir, onResponder, onToggleComments) {
+function criarCardDePost(post, onReagir, onResponder, onToggleComments, onExcluirPost, onExcluirComentario) {
   const li = document.createElement("li");
   li.className = "post";
 
@@ -40,6 +42,16 @@ function criarCardDePost(post, onReagir, onResponder, onToggleComments) {
 
   head.append(nome, hora);
 
+  if (state.isAdmin) {
+    const btnExcluirPost = document.createElement("button");
+    btnExcluirPost.type = "button";
+    btnExcluirPost.className = "remove-btn remove-btn-sm";
+    btnExcluirPost.textContent = "×";
+    btnExcluirPost.setAttribute("aria-label", "Excluir post");
+    btnExcluirPost.onclick = () => onExcluirPost(post.id);
+    head.appendChild(btnExcluirPost);
+  }
+
   const texto = document.createElement("p");
   texto.className = "post-text";
   texto.textContent = post.text;
@@ -48,7 +60,7 @@ function criarCardDePost(post, onReagir, onResponder, onToggleComments) {
     head,
     texto,
     criarAcoes(post, onReagir, onToggleComments),
-    criarComentarios(post, onResponder)
+    criarComentarios(post, onResponder, onExcluirComentario)
   );
   row.append(criarAvatar(post.user), body);
   li.appendChild(row);
@@ -84,7 +96,7 @@ function criarAcoes(post, onReagir, onToggleComments) {
   return acoes;
 }
 
-function criarComentarios(post, onResponder) {
+function criarComentarios(post, onResponder, onExcluirComentario) {
   const wrapper = document.createElement("div");
   wrapper.className = "comments" + (state.comentariosAbertos.has(post.id) ? "" : " hidden");
   wrapper.id = `comments-${post.id}`;
@@ -112,6 +124,17 @@ function criarComentarios(post, onResponder) {
       texto.textContent = c.text;
 
       item.append(nomeAutor, texto);
+
+      if (state.isAdmin) {
+        const btnExcluirComentario = document.createElement("button");
+        btnExcluirComentario.type = "button";
+        btnExcluirComentario.className = "remove-btn remove-btn-sm";
+        btnExcluirComentario.textContent = "×";
+        btnExcluirComentario.setAttribute("aria-label", "Excluir comentário");
+        btnExcluirComentario.onclick = () => onExcluirComentario(post.id, c.id);
+        item.appendChild(btnExcluirComentario);
+      }
+
       lista.appendChild(item);
     });
 
