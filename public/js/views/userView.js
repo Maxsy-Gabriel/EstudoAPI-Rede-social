@@ -18,6 +18,10 @@ export function renderPeopleList() {
     const li = document.createElement("li");
     li.className = "person" + (user.id === state.identidadeAtualId ? " active" : "");
 
+    const link = document.createElement("a");
+    link.className = "person-link";
+    link.href = `/app/perfil?id=${user.id}`;
+
     const info = document.createElement("div");
     info.className = "person-info";
 
@@ -30,7 +34,8 @@ export function renderPeopleList() {
     handle.textContent = `@${user.username}`;
 
     info.append(nome, handle);
-    li.append(criarAvatar(user), info);
+    link.append(criarAvatar(user), info);
+    li.appendChild(link);
     usersList.appendChild(li);
   });
 }
@@ -45,6 +50,10 @@ export function renderIdentity() {
     vazio.textContent = "Escolha alguém em Pessoas.";
     identityCard.appendChild(vazio);
   } else {
+    const link = document.createElement("a");
+    link.className = "person-link";
+    link.href = "/app/perfil";
+
     const info = document.createElement("div");
     info.className = "person-info";
 
@@ -57,7 +66,8 @@ export function renderIdentity() {
     handle.textContent = `@${user.username}`;
 
     info.append(nome, handle);
-    identityCard.append(criarAvatar(user), info);
+    link.append(criarAvatar(user), info);
+    identityCard.appendChild(link);
   }
 
   composerAvatar.className = user ? "avatar" : "avatar removed";

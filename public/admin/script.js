@@ -1,5 +1,6 @@
 import { getUsuarioLogado, logout, iniciarHeartbeat } from "../js/auth.js";
 import { criarAvatar } from "../js/utils/dom.js";
+import { iniciarChat } from "../js/chat.js";
 
 const usuarioLogado = getUsuarioLogado();
 const corpo = document.getElementById("admin-tabela-corpo");
@@ -39,8 +40,9 @@ function renderizar(usuarios) {
     const tr = document.createElement("tr");
 
     const tdPessoa = document.createElement("td");
-    const pessoa = document.createElement("div");
+    const pessoa = document.createElement("a");
     pessoa.className = "admin-pessoa";
+    pessoa.href = `/app/perfil?id=${usuario.id}`;
 
     const info = document.createElement("div");
     const nome = document.createElement("div");
@@ -109,5 +111,6 @@ async function excluirUsuario(usuario) {
 
 logoutBtn.addEventListener("click", logout);
 iniciarHeartbeat(usuarioLogado);
+iniciarChat(usuarioLogado);
 atualizarAvatarTopnav();
 carregarUsuarios();

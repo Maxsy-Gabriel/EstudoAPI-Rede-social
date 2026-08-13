@@ -32,9 +32,10 @@ function criarCardDePost(post, onReagir, onResponder, onToggleComments, onExclui
   const head = document.createElement("div");
   head.className = "post-head";
 
-  const nome = document.createElement("span");
+  const nome = document.createElement(post.user ? "a" : "span");
   nome.className = "post-name";
   nome.textContent = post.user ? post.user.name : "Usuário removido";
+  if (post.user) nome.href = `/app/perfil?id=${post.user.id}`;
 
   const hora = document.createElement("span");
   hora.className = "post-time";
@@ -62,7 +63,15 @@ function criarCardDePost(post, onReagir, onResponder, onToggleComments, onExclui
     criarAcoes(post, onReagir, onToggleComments),
     criarComentarios(post, onResponder, onExcluirComentario)
   );
-  row.append(criarAvatar(post.user), body);
+  if (post.user) {
+    const avatarLink = document.createElement("a");
+    avatarLink.className = "avatar-link";
+    avatarLink.href = `/app/perfil?id=${post.user.id}`;
+    avatarLink.appendChild(criarAvatar(post.user));
+    row.append(avatarLink, body);
+  } else {
+    row.append(criarAvatar(post.user), body);
+  }
   li.appendChild(row);
 
   return li;

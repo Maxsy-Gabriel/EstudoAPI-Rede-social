@@ -92,6 +92,19 @@ async function initDb() {
     ALTER TABLE users ADD COLUMN IF NOT EXISTS sobre TEXT;
     ALTER TABLE users ADD COLUMN IF NOT EXISTS idade INTEGER;
     ALTER TABLE users ADD COLUMN IF NOT EXISTS estado_civil TEXT;
+
+    -- Isso cria as mensagens privadas (DM 1-pra-1, sem conceito de grupo por enquanto):
+    CREATE TABLE IF NOT EXISTS messages (
+      id SERIAL PRIMARY KEY,
+      sender_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      recipient_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
+      text TEXT NOT NULL,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    -- Isso deixa rápido buscar "a conversa entre A e B" nos dois sentidos:
+    CREATE INDEX IF NOT EXISTS idx_messages_sender_recipient ON messages (sender_id, recipient_id, created_at);
+    CREATE INDEX IF NOT EXISTS idx_messages_recipient_sender ON messages (recipient_id, sender_id, created_at);
   `);
 
   await hashearSenhasEmTextoPuro();

@@ -1,0 +1,102 @@
+.perfil-layout {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 28px 20px 80px;
+}
+
+.perfil-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 20px;
+}
+
+.perfil-head h1 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.perfil-head .logout-btn {
+  width: auto;
+  margin-top: 0;
+  padding: 8px 16px;
+}
+
+.perfil-foto {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 28px;
+}
+
+.avatar-grande {
+  width: 72px;
+  height: 72px;
+  font-size: 1.3rem;
+}
+
+.perfil-hint {
+  margin: 6px 0 0;
+  font-size: 0.76rem;
+  color: var(--text-dim);
+}
+
+.perfil-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+}
+
+.perfil-form h2 {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.perfil-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-dim);
+}
+
+.perfil-form input,
+.perfil-form select,
+.perfil-form textarea {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+  color: var(--text);
+  font-family: "Inter", sans-serif;
+  font-size: 0.88rem;
+  padding: 10px 12px;
+  resize: vertical;
+}
+
+.perfil-form input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.perfil-form input:focus-visible,
+.perfil-form select:focus-visible,
+.perfil-form textarea:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.perfil-erro {
+  color: var(--accent);
+  font-size: 0.8rem;
+  margin: 0;
+}
+
+.perfil-sucesso {
+  color: #2ecc71;
+  font-size: 0.8rem;
+  margin: 0;
+}

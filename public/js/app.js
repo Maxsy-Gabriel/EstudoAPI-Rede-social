@@ -2,6 +2,7 @@ import { state } from "./state.js";
 import { usersList, postsList, postsForm, postText, logoutBtn, adminLink, perfilLink } from "./elements.js";
 import { mostrarMensagem, criarAvatar } from "./utils/dom.js";
 import { getUsuarioLogado, logout, iniciarHeartbeat } from "./auth.js";
+import { iniciarChat } from "./chat.js";
 import * as userController from "./controllers/userController.js";
 import * as postController from "./controllers/postController.js";
 import { renderPeopleList, renderIdentity } from "./views/userView.js";
@@ -13,6 +14,7 @@ if (usuarioLogado) {
   state.identidadeAtualId = usuarioLogado.id;
 }
 iniciarHeartbeat(usuarioLogado);
+iniciarChat(usuarioLogado);
 
 // Isso usa sempre o dado fresco do banco (não o que ficou salvo no localStorage) pro avatar e o link de admin:
 function atualizarTopnav() {
