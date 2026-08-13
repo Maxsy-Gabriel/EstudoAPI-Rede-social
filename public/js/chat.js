@@ -10,15 +10,22 @@ export function iniciarChat(usuarioLogado) {
   let pessoas = [];
   let conversaAbertaComId = null;
   const idsRenderizados = new Set();
+  const naoLidos = new Set();
 
   function horaCurta(iso) {
     return new Date(iso).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" });
   }
 
-  function marcarNaoLida() {
-    if (elementos.painel.classList.contains("hidden")) {
-      elementos.badge.classList.remove("hidden");
-    }
+  // Isso mostra a bolinha vermelha no botão geral sempre que tiver alguma conversa não lida:
+  function atualizarBadgeGlobal() {
+    elementos.badge.classList.toggle("hidden", naoLidos.size === 0);
+  }
+
+  // Isso marca de quem é a mensagem não lida, tanto no botão geral quanto na linha da pessoa:
+  function marcarNaoLida(remetenteId) {
+    naoLidos.add(remetenteId);
+    atualizarBadgeGlobal();
+    renderizarListaDePessoas();
   }
 
   async function carregarPessoas() {
@@ -52,6 +59,13 @@ export function iniciarChat(usuarioLogado) {
       info.appendChild(nome);
 
       item.append(criarAvatar(pessoa), info);
+
+      if (naoLidos.has(pessoa.id)) {
+        const pontinho = document.createElement("span");
+        pontinho.className = "chat-badge";
+        item.appendChild(pontinho);
+      }
+
       item.addEventListener("click", () => abrirConversa(pessoa));
       elementos.lista.appendChild(item);
     });
@@ -60,6 +74,9 @@ export function iniciarChat(usuarioLogado) {
   async function abrirConversa(pessoa) {
     conversaAbertaComId = pessoa.id;
     idsRenderizados.clear();
+
+    naoLidos.delete(pessoa.id);
+    atualizarBadgeGlobal();
 
     elementos.lista.classList.add("hidden");
     elementos.janela.classList.remove("hidden");
@@ -141,23 +158,31 @@ export function iniciarChat(usuarioLogado) {
 
   elementos.botaoVoltar.addEventListener("click", voltarParaLista);
 
+  // Isso troca o botão "Mensagens" pelo painel aberto (só um dos dois aparece de cada vez):
   elementos.toggle.addEventListener("click", () => {
-    const estavaFechado = elementos.painel.classList.contains("hidden");
-    elementos.painel.classList.toggle("hidden");
-    if (estavaFechado) {
-      elementos.badge.classList.add("hidden");
-    }
+    elementos.toggle.classList.add("hidden");
+    elementos.painel.classList.remove("hidden");
+  });
+
+  elementos.botaoFechar.addEventListener("click", () => {
+    elementos.painel.classList.add("hidden");
+    elementos.toggle.classList.remove("hidden");
   });
 
   socket.on("nova-mensagem", (mensagem) => {
     // A mensagem que eu mesmo mandei já apareceu na hora (otimista) — isso aqui é só o eco do servidor:
     if (mensagem.senderId === usuarioLogado.id) return;
 
-    if (mensagem.senderId === conversaAbertaComId && !elementos.painel.classList.contains("hidden")) {
+    const conversaVisivel =
+      mensagem.senderId === conversaAbertaComId &&
+      !elementos.painel.classList.contains("hidden") &&
+      !elementos.janela.classList.contains("hidden");
+
+    if (conversaVisivel) {
       adicionarBolha(mensagem);
       rolarParaFinal();
     } else {
-      marcarNaoLida();
+      marcarNaoLida(mensagem.senderId);
     }
   });
 
@@ -179,6 +204,17 @@ function criarBarraDeChat() {
 
   const painel = document.createElement("div");
   painel.className = "chat-painel hidden";
+
+  const painelTopo = document.createElement("div");
+  painelTopo.className = "chat-painel-topo";
+  const painelTitulo = document.createElement("span");
+  painelTitulo.textContent = "Mensagens";
+  const botaoFechar = document.createElement("button");
+  botaoFechar.type = "button";
+  botaoFechar.className = "chat-fechar";
+  botaoFechar.textContent = "×";
+  botaoFechar.setAttribute("aria-label", "Fechar mensagens");
+  painelTopo.append(painelTitulo, botaoFechar);
 
   const lista = document.createElement("div");
   lista.className = "chat-lista";
@@ -213,9 +249,9 @@ function criarBarraDeChat() {
   form.append(input, botaoEnviar);
 
   janela.append(janelaTopo, mensagens, form);
-  painel.append(lista, janela);
+  painel.append(painelTopo, lista, janela);
   bar.append(painel, toggle);
   document.body.appendChild(bar);
 
-  return { bar, toggle, badge, painel, lista, janela, janelaTitulo, botaoVoltar, mensagens, form, input };
+  return { bar, toggle, badge, painel, botaoFechar, lista, janela, janelaTitulo, botaoVoltar, mensagens, form, input };
 }
