@@ -1,5 +1,7 @@
-export async function listarFeed() {
-  const res = await fetch("/feed");
+export async function listarFeed(usuarioId) {
+  const res = await fetch("/feed", {
+    headers: usuarioId ? { "X-User-Id": usuarioId } : {},
+  });
   return res.json();
 }
 

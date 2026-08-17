@@ -2,13 +2,15 @@ const postModel = require("./postModel");
 const userModel = require("./userModel");
 const commentModel = require("./commentModel");
 const reactionModel = require("./reactionModel");
+const followModel = require("./followModel");
 
 // Isso monta o feed juntando cada post com seu autor, comentários e reações:
-async function montar() {
+async function montar(solicitanteId) {
   const posts = await postModel.listarTodos();
   const users = await userModel.listarTodos();
   const comments = await commentModel.listarTodos();
   const reactions = await reactionModel.listarTodos();
+  const seguindoIds = new Set(solicitanteId ? await followModel.listarSeguindoIds(solicitanteId) : []);
 
   return posts.map((post) => {
     const autorDoPost = users.find((u) => u.id === post.user_id);
@@ -33,7 +35,13 @@ async function montar() {
       text: post.text,
       createdAt: post.created_at,
       user: autorDoPost
-        ? { id: autorDoPost.id, name: autorDoPost.name, online: autorDoPost.online, avatar: autorDoPost.avatar }
+        ? {
+            id: autorDoPost.id,
+            name: autorDoPost.name,
+            online: autorDoPost.online,
+            avatar: autorDoPost.avatar,
+            isFollowing: seguindoIds.has(autorDoPost.id),
+          }
         : null,
       comments: commentsDoPost,
       reactions: reactionsMapeadas,

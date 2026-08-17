@@ -42,7 +42,7 @@ async function atualizarUsuarios() {
 async function atualizarFeed() {
   const ok = await postController.carregarFeed();
   if (ok) {
-    renderFeed(reagir, responder, toggleComments, excluirPost, excluirComentario);
+    renderFeed(reagir, responder, toggleComments, excluirPost, excluirComentario, seguirAutor);
   }
 }
 
@@ -75,7 +75,7 @@ async function reagir(postId, tipo) {
   if (!post) return;
 
   aplicarReacaoOtimista(post, tipo);
-  renderFeed(reagir, responder, toggleComments, excluirPost, excluirComentario);
+  renderFeed(reagir, responder, toggleComments, excluirPost, excluirComentario, seguirAutor);
 
   try {
     await postController.reagir(postId, state.identidadeAtualId, tipo);
@@ -104,7 +104,7 @@ async function responder(postId, texto) {
 
   aplicarComentarioOtimista(post, texto);
   state.comentariosAbertos.add(postId);
-  renderFeed(reagir, responder, toggleComments, excluirPost, excluirComentario);
+  renderFeed(reagir, responder, toggleComments, excluirPost, excluirComentario, seguirAutor);
 
   try {
     await postController.responder(postId, state.identidadeAtualId, texto);
@@ -120,7 +120,45 @@ function toggleComments(postId) {
   } else {
     state.comentariosAbertos.add(postId);
   }
-  renderFeed(reagir, responder, toggleComments, excluirPost, excluirComentario);
+  renderFeed(reagir, responder, toggleComments, excluirPost, excluirComentario, seguirAutor);
+}
+
+// Isso guarda o novo estado em state.feed (pra continuar certo se o feed for redesenhado por outro motivo depois),
+// mas sem redesenhar nada agora:
+function aplicarSeguirOtimista(autorId, seguindoAgora) {
+  const novoEstado = !seguindoAgora;
+  state.feed.forEach((post) => {
+    if (post.user?.id === autorId) post.user.isFollowing = novoEstado;
+  });
+  return novoEstado;
+}
+
+// Isso muda só os botões daquele autor no DOM, sem recriar a lista de posts inteira
+// (evita perder a posição do scroll):
+function atualizarBotoesSeguirNaTela(autorId, seguindo) {
+  postsList.querySelectorAll(`.post-seguir-btn[data-autor-id="${autorId}"]`).forEach((btn) => {
+    btn.textContent = seguindo ? "Seguindo" : "Seguir";
+    btn.classList.toggle("seguindo", seguindo);
+  });
+}
+
+async function seguirAutor(autorId, seguindoAgora) {
+  if (!state.identidadeAtualId) return;
+
+  const novoEstado = aplicarSeguirOtimista(autorId, seguindoAgora);
+  atualizarBotoesSeguirNaTela(autorId, novoEstado);
+
+  try {
+    if (seguindoAgora) {
+      await userController.deixarDeSeguir(autorId, state.identidadeAtualId);
+    } else {
+      await userController.seguir(autorId, state.identidadeAtualId);
+    }
+  } catch (erro) {
+    console.error("Falha ao seguir/deixar de seguir:", erro);
+    aplicarSeguirOtimista(autorId, novoEstado);
+    atualizarBotoesSeguirNaTela(autorId, seguindoAgora);
+  }
 }
 
 async function excluirPost(postId) {
