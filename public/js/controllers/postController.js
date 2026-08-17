@@ -5,7 +5,7 @@ import { postsList } from "../elements.js";
 
 export async function carregarFeed() {
   try {
-    state.feed = await postModel.listarFeed();
+    state.feed = await postModel.listarFeed(state.identidadeAtualId);
   } catch (erro) {
     console.error("Falha ao carregar o feed:", erro);
     mostrarMensagem(postsList, "Não foi possível carregar o feed.");

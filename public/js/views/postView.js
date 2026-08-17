@@ -3,7 +3,7 @@ import { postsList } from "../elements.js";
 import { mostrarMensagem, criarAvatar } from "../utils/dom.js";
 import { tempoRelativo } from "../utils/format.js";
 
-export function renderFeed(onReagir, onResponder, onToggleComments, onExcluirPost, onExcluirComentario) {
+export function renderFeed(onReagir, onResponder, onToggleComments, onExcluirPost, onExcluirComentario, onSeguir) {
   postsList.innerHTML = "";
 
   if (state.feed.length === 0) {
@@ -14,12 +14,12 @@ export function renderFeed(onReagir, onResponder, onToggleComments, onExcluirPos
   const maisRecentesPrimeiro = [...state.feed].reverse();
   maisRecentesPrimeiro.forEach((post) =>
     postsList.appendChild(
-      criarCardDePost(post, onReagir, onResponder, onToggleComments, onExcluirPost, onExcluirComentario)
+      criarCardDePost(post, onReagir, onResponder, onToggleComments, onExcluirPost, onExcluirComentario, onSeguir)
     )
   );
 }
 
-function criarCardDePost(post, onReagir, onResponder, onToggleComments, onExcluirPost, onExcluirComentario) {
+function criarCardDePost(post, onReagir, onResponder, onToggleComments, onExcluirPost, onExcluirComentario, onSeguir) {
   const li = document.createElement("li");
   li.className = "post";
 
@@ -42,6 +42,16 @@ function criarCardDePost(post, onReagir, onResponder, onToggleComments, onExclui
   hora.textContent = tempoRelativo(post.createdAt);
 
   head.append(nome, hora);
+
+  if (post.user && post.user.id !== state.identidadeAtualId) {
+    const btnSeguir = document.createElement("button");
+    btnSeguir.type = "button";
+    btnSeguir.className = "post-seguir-btn" + (post.user.isFollowing ? " seguindo" : "");
+    btnSeguir.textContent = post.user.isFollowing ? "Seguindo" : "Seguir";
+    btnSeguir.dataset.autorId = post.user.id;
+    btnSeguir.onclick = () => onSeguir(post.user.id, post.user.isFollowing);
+    head.appendChild(btnSeguir);
+  }
 
   if (state.isAdmin) {
     const btnExcluirPost = document.createElement("button");

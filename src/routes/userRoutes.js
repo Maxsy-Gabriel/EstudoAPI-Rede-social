@@ -1,5 +1,6 @@
 const express = require("express");
 const userController = require("../controllers/userController");
+const followController = require("../controllers/followController");
 const exigirAdmin = require("../middlewares/exigirAdmin");
 const exigirMesmoUsuario = require("../middlewares/exigirMesmoUsuario");
 
@@ -16,5 +17,10 @@ router.patch("/:id/cargo", exigirAdmin, userController.atualizarCargo);
 router.patch("/:id/perfil", exigirMesmoUsuario, userController.atualizarPerfil);
 router.patch("/:id/senha", exigirMesmoUsuario, userController.atualizarSenha);
 router.delete("/:id", exigirAdmin, userController.remover);
+
+// Isso define as rotas de seguir/deixar de seguir:
+router.get("/:id/seguidores", followController.info);
+router.post("/:id/seguir", followController.seguir);
+router.delete("/:id/seguir", followController.deixarDeSeguir);
 
 module.exports = router;

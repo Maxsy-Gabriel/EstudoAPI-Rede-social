@@ -105,6 +105,19 @@ async function initDb() {
     -- Isso deixa rápido buscar "a conversa entre A e B" nos dois sentidos:
     CREATE INDEX IF NOT EXISTS idx_messages_sender_recipient ON messages (sender_id, recipient_id, created_at);
     CREATE INDEX IF NOT EXISTS idx_messages_recipient_sender ON messages (recipient_id, sender_id, created_at);
+
+    -- Isso cria o relacionamento de seguir/deixar de seguir entre usuários:
+    CREATE TABLE IF NOT EXISTS follows (
+      id SERIAL PRIMARY KEY,
+      follower_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      followed_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+      CHECK (follower_id != followed_id),
+      UNIQUE (follower_id, followed_id)
+    );
+
+    -- Isso deixa rápido contar quantos seguidores alguém tem:
+    CREATE INDEX IF NOT EXISTS idx_follows_followed ON follows (followed_id);
   `);
 
   await hashearSenhasEmTextoPuro();

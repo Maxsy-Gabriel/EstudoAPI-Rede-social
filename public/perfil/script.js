@@ -19,11 +19,14 @@ const ehMeuPerfil = perfilId === usuarioLogado.id;
 const adminLink = document.getElementById("admin-link");
 const perfilLink = document.getElementById("perfil-link");
 const editarLink = document.getElementById("editar-link");
+const seguirBtn = document.getElementById("seguir-btn");
 
 const avatarPreview = document.getElementById("avatar-preview");
 const usernameTitulo = document.getElementById("perfil-username");
 const nomeEl = document.getElementById("perfil-nome");
 const totalPostsEl = document.getElementById("perfil-total-posts");
+const seguidoresEl = document.getElementById("perfil-seguidores");
+const seguindoEl = document.getElementById("perfil-seguindo");
 const sobreEl = document.getElementById("perfil-sobre-texto");
 const detalhesEl = document.getElementById("perfil-detalhes");
 const postsList = document.getElementById("perfil-posts");
@@ -120,6 +123,64 @@ async function carregarPosts() {
   posts.forEach((post) => postsList.appendChild(criarItemPost(post)));
 }
 
+function atualizarBotaoSeguir(seguindo) {
+  seguirBtn.textContent = seguindo ? "Deixar de seguir" : "Seguir";
+  seguirBtn.classList.toggle("btn-primary", !seguindo);
+  seguirBtn.classList.toggle("btn-ghost", seguindo);
+  seguirBtn.dataset.seguindo = seguindo ? "true" : "false";
+}
+
+async function carregarSeguidores() {
+  const res = await fetch(`/users/${perfilId}/seguidores`, {
+    headers: { "X-User-Id": usuarioLogado.id },
+  });
+  if (!res.ok) return;
+
+  const dados = await res.json();
+  seguidoresEl.textContent = dados.followersCount;
+  seguindoEl.textContent = dados.followingCount;
+
+  if (!ehMeuPerfil) {
+    seguirBtn.classList.remove("hidden");
+    atualizarBotaoSeguir(dados.isFollowing);
+  }
+}
+
+let seguirEmAndamento = false;
+
+seguirBtn.addEventListener("click", async () => {
+  if (seguirEmAndamento) return;
+  seguirEmAndamento = true;
+
+  const seguindoAgora = seguirBtn.dataset.seguindo === "true";
+  const novoEstado = !seguindoAgora;
+
+  // Isso muda o botão e o contador na hora, sem esperar o servidor confirmar:
+  atualizarBotaoSeguir(novoEstado);
+  seguidoresEl.textContent = Math.max(0, Number(seguidoresEl.textContent) + (novoEstado ? 1 : -1));
+
+  try {
+    const res = await fetch(`/users/${perfilId}/seguir`, {
+      method: seguindoAgora ? "DELETE" : "POST",
+      headers: { "X-User-Id": usuarioLogado.id },
+    });
+
+    if (!res.ok) throw new Error("Falha ao seguir/deixar de seguir");
+
+    const dados = await res.json();
+    seguidoresEl.textContent = dados.followersCount;
+    seguindoEl.textContent = dados.followingCount;
+    atualizarBotaoSeguir(dados.isFollowing);
+  } catch (erro) {
+    console.error(erro);
+    // Se der erro, desfaz a mudança otimista e busca o estado real de novo:
+    atualizarBotaoSeguir(seguindoAgora);
+    await carregarSeguidores();
+  } finally {
+    seguirEmAndamento = false;
+  }
+});
+
 // Isso usa sempre o dado fresco do banco (não o que ficou salvo no localStorage) pro topnav:
 async function atualizarTopnav() {
   const res = await fetch(`/users/${usuarioLogado.id}`);
@@ -139,3 +200,4 @@ iniciarChat(usuarioLogado);
 atualizarTopnav();
 carregarPerfil();
 carregarPosts();
+carregarSeguidores();

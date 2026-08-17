@@ -21,3 +21,11 @@ export async function carregarUsuarios() {
 
   return true;
 }
+
+export async function seguir(id, solicitanteId) {
+  await userModel.seguir(id, solicitanteId);
+}
+
+export async function deixarDeSeguir(id, solicitanteId) {
+  await userModel.deixarDeSeguir(id, solicitanteId);
+}
