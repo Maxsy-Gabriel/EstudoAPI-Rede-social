@@ -38,7 +38,7 @@ body::before {
   inset: 0;
   z-index: -1;
   background: url("/app/assets/images/background-landingpage2.png") center 15% / cover no-repeat;
-  opacity: 0.3;
+  opacity: 0.13;
 }
 
 main {
