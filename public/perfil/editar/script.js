@@ -2,6 +2,7 @@ import { getUsuarioLogado, logout, iniciarHeartbeat, salvarUsuarioLogado } from 
 import { iniciais } from "../../js/utils/format.js";
 import { criarAvatar } from "../../js/utils/dom.js";
 import { iniciarChat } from "../../js/chat.js";
+import { redimensionarQuadrado } from "../../js/utils/imagem.js";
 
 const usuarioLogado = getUsuarioLogado();
 const adminLink = document.getElementById("admin-link");
@@ -69,33 +70,6 @@ async function carregarPerfil() {
   estadoCivilInput.value = usuario.estado_civil || "";
 }
 
-// Isso recorta a imagem em quadrado e reduz o tamanho antes de mandar pro servidor:
-function redimensionarImagem(file, tamanho = 256) {
-  return new Promise((resolve, reject) => {
-    const leitor = new FileReader();
-    leitor.onerror = () => reject(new Error("Não foi possível ler a imagem"));
-    leitor.onload = () => {
-      const img = new Image();
-      img.onerror = () => reject(new Error("Arquivo não é uma imagem válida"));
-      img.onload = () => {
-        const canvas = document.createElement("canvas");
-        canvas.width = tamanho;
-        canvas.height = tamanho;
-        const ctx = canvas.getContext("2d");
-
-        const lado = Math.min(img.width, img.height);
-        const sx = (img.width - lado) / 2;
-        const sy = (img.height - lado) / 2;
-        ctx.drawImage(img, sx, sy, lado, lado, 0, 0, tamanho, tamanho);
-
-        resolve(canvas.toDataURL("image/jpeg", 0.85));
-      };
-      img.src = leitor.result;
-    };
-    leitor.readAsDataURL(file);
-  });
-}
-
 trocarFotoBtn.addEventListener("click", () => avatarInput.click());
 
 avatarInput.addEventListener("change", async () => {
@@ -109,7 +83,7 @@ avatarInput.addEventListener("change", async () => {
   }
 
   try {
-    avatarAtual = await redimensionarImagem(file);
+    avatarAtual = await redimensionarQuadrado(file);
     mostrarAvatar({ name: nameInput.value, avatar: avatarAtual });
     perfilErro.classList.add("hidden");
   } catch (erro) {

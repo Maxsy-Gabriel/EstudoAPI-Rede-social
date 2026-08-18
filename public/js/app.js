@@ -1,6 +1,26 @@
 import { state } from "./state.js";
-import { usersList, postsList, postsForm, postText, logoutBtn, adminLink, perfilLink } from "./elements.js";
+import {
+  usersList,
+  postsList,
+  postsForm,
+  postText,
+  logoutBtn,
+  adminLink,
+  perfilLink,
+  postImageBtn,
+  postImageInput,
+  postImagePreview,
+  postImagePreviewImg,
+  postImageRemoveBtn,
+  postVideoBtn,
+  postVideoInput,
+  postVideoPreview,
+  postVideoPreviewEl,
+  postVideoRemoveBtn,
+} from "./elements.js";
 import { mostrarMensagem, criarAvatar } from "./utils/dom.js";
+import { redimensionarParaPost } from "./utils/imagem.js";
+import { lerDuracaoDoVideo, arquivoParaDataUri } from "./utils/video.js";
 import { getUsuarioLogado, logout, iniciarHeartbeat } from "./auth.js";
 import { iniciarChat } from "./chat.js";
 import * as userController from "./controllers/userController.js";
@@ -46,8 +66,8 @@ async function atualizarFeed() {
   }
 }
 
-async function publicarPost(text) {
-  await postController.criarPost(state.identidadeAtualId, text);
+async function publicarPost(text, image, video) {
+  await postController.criarPost(state.identidadeAtualId, text, image, video);
   await atualizarFeed();
 }
 
@@ -175,15 +195,104 @@ async function excluirComentario(postId, commentId) {
 
 logoutBtn.addEventListener("click", logout);
 
+const DURACAO_MAXIMA_VIDEO_SEGUNDOS = 30;
+const TAMANHO_MAXIMO_VIDEO_BYTES = 20 * 1024 * 1024;
+
+// Isso guarda a imagem/vídeo já prontos, escolhidos pra entrar no próximo post
+// (só um dos dois por post, como no Instagram/X):
+let imagemSelecionada = null;
+let videoSelecionado = null;
+
+function limparImagemSelecionada() {
+  imagemSelecionada = null;
+  postImagePreviewImg.src = "";
+  postImagePreview.classList.add("hidden");
+  postImageBtn.classList.remove("active");
+}
+
+function limparVideoSelecionado() {
+  videoSelecionado = null;
+  postVideoPreviewEl.src = "";
+  postVideoPreview.classList.add("hidden");
+  postVideoBtn.classList.remove("active");
+}
+
+postImageBtn.addEventListener("click", () => postImageInput.click());
+
+postImageInput.addEventListener("change", async () => {
+  const file = postImageInput.files[0];
+  if (!file) return;
+
+  if (file.size > 8 * 1024 * 1024) {
+    window.alert("Imagem muito grande (máximo 8MB).");
+    postImageInput.value = "";
+    return;
+  }
+
+  try {
+    const dataUri = await redimensionarParaPost(file);
+    limparVideoSelecionado();
+    imagemSelecionada = dataUri;
+    postImagePreviewImg.src = imagemSelecionada;
+    postImagePreview.classList.remove("hidden");
+    postImageBtn.classList.add("active");
+  } catch (erro) {
+    console.error("Falha ao processar imagem:", erro);
+    window.alert("Não foi possível processar essa imagem.");
+  } finally {
+    postImageInput.value = "";
+  }
+});
+
+postImageRemoveBtn.addEventListener("click", limparImagemSelecionada);
+
+postVideoBtn.addEventListener("click", () => postVideoInput.click());
+
+postVideoInput.addEventListener("change", async () => {
+  const file = postVideoInput.files[0];
+  if (!file) return;
+
+  if (file.size > TAMANHO_MAXIMO_VIDEO_BYTES) {
+    window.alert("Vídeo muito grande (máximo 20MB).");
+    postVideoInput.value = "";
+    return;
+  }
+
+  try {
+    const duracao = await lerDuracaoDoVideo(file);
+    if (duracao > DURACAO_MAXIMA_VIDEO_SEGUNDOS) {
+      window.alert("Vídeo muito longo (máximo 30 segundos).");
+      return;
+    }
+
+    const dataUri = await arquivoParaDataUri(file);
+    limparImagemSelecionada();
+    videoSelecionado = dataUri;
+    postVideoPreviewEl.src = videoSelecionado;
+    postVideoPreview.classList.remove("hidden");
+    postVideoBtn.classList.add("active");
+  } catch (erro) {
+    console.error("Falha ao processar vídeo:", erro);
+    window.alert("Não foi possível processar esse vídeo.");
+  } finally {
+    postVideoInput.value = "";
+  }
+});
+
+postVideoRemoveBtn.addEventListener("click", limparVideoSelecionado);
+
 postsForm.addEventListener("submit", async (e) => {
   e.preventDefault();
-  const botao = postsForm.querySelector("button");
-  const text = postText.value;
+  const texto = postText.value.trim();
+  if (!texto && !imagemSelecionada && !videoSelecionado) return;
 
+  const botao = postsForm.querySelector('button[type="submit"]');
   botao.disabled = true;
   botao.textContent = "Postando...";
-  await publicarPost(text);
+  await publicarPost(texto, imagemSelecionada, videoSelecionado);
   postsForm.reset();
+  limparImagemSelecionada();
+  limparVideoSelecionado();
   botao.disabled = false;
   botao.textContent = "Postar";
 });

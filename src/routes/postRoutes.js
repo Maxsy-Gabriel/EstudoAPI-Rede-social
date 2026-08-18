@@ -9,6 +9,7 @@ const router = express.Router();
 // Isso define as rotas de posts:
 router.get("/", postController.listar);
 router.post("/", postController.criar);
+router.get("/:id/video", postController.streamVideo);
 router.delete("/:id", exigirAdmin, postController.remover);
 
 // Isso define as rotas de comentários e reações, aninhadas em um post:
