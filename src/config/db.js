@@ -51,6 +51,12 @@ async function initDb() {
       created_at TIMESTAMPTZ NOT NULL DEFAULT now()
     );
 
+    -- Isso permite postagens com foto (base64, redimensionada no navegador):
+    ALTER TABLE posts ADD COLUMN IF NOT EXISTS image TEXT;
+
+    -- Isso permite postagens com vídeo (base64, máx. 1min/20MB validado na criação):
+    ALTER TABLE posts ADD COLUMN IF NOT EXISTS video TEXT;
+
     CREATE TABLE IF NOT EXISTS comments (
       id SERIAL PRIMARY KEY,
       post_id INTEGER NOT NULL REFERENCES posts(id),

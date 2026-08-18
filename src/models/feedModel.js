@@ -33,6 +33,8 @@ async function montar(solicitanteId) {
     return {
       id: post.id,
       text: post.text,
+      image: post.image,
+      hasVideo: post.has_video,
       createdAt: post.created_at,
       user: autorDoPost
         ? {

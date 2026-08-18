@@ -2,6 +2,7 @@ import { getUsuarioLogado, iniciarHeartbeat } from "../js/auth.js";
 import { iniciais, tempoRelativo } from "../js/utils/format.js";
 import { criarAvatar } from "../js/utils/dom.js";
 import { iniciarChat } from "../js/chat.js";
+import { abrirLightbox } from "../js/utils/lightbox.js";
 
 const ESTADOS_CIVIS = {
   solteiro: "Solteiro(a)",
@@ -82,10 +83,6 @@ function criarItemPost(post) {
   const li = document.createElement("li");
   li.className = "post";
 
-  const texto = document.createElement("p");
-  texto.className = "post-text";
-  texto.textContent = post.text;
-
   const meta = document.createElement("div");
   meta.className = "post-meta";
 
@@ -100,7 +97,34 @@ function criarItemPost(post) {
   comentarios.textContent = `${total} resposta${total === 1 ? "" : "s"}`;
 
   meta.append(tempo, reacoes, comentarios);
-  li.append(texto, meta);
+
+  if (post.text) {
+    const texto = document.createElement("p");
+    texto.className = "post-text";
+    texto.textContent = post.text;
+    li.appendChild(texto);
+  }
+
+  if (post.image) {
+    const imagem = document.createElement("img");
+    imagem.className = "post-image";
+    imagem.src = post.image;
+    imagem.alt = "";
+    imagem.onclick = () => abrirLightbox(post.image);
+    li.appendChild(imagem);
+  }
+
+  if (post.hasVideo) {
+    const video = document.createElement("video");
+    video.className = "post-video";
+    video.src = `/posts/${post.id}/video`;
+    video.controls = true;
+    video.preload = "metadata";
+    video.playsInline = true;
+    li.appendChild(video);
+  }
+
+  li.appendChild(meta);
   return li;
 }
 

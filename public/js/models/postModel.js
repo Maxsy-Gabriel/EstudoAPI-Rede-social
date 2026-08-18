@@ -5,11 +5,11 @@ export async function listarFeed(usuarioId) {
   return res.json();
 }
 
-export async function criarPost(userId, text) {
+export async function criarPost(userId, text, image, video) {
   await fetch("/posts", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ userId, text }),
+    body: JSON.stringify({ userId, text, image, video }),
   });
 }
 

@@ -2,6 +2,7 @@ import { state } from "../state.js";
 import { postsList } from "../elements.js";
 import { mostrarMensagem, criarAvatar } from "../utils/dom.js";
 import { tempoRelativo } from "../utils/format.js";
+import { abrirLightbox } from "../utils/lightbox.js";
 
 export function renderFeed(onReagir, onResponder, onToggleComments, onExcluirPost, onExcluirComentario, onSeguir) {
   postsList.innerHTML = "";
@@ -63,16 +64,40 @@ function criarCardDePost(post, onReagir, onResponder, onToggleComments, onExclui
     head.appendChild(btnExcluirPost);
   }
 
-  const texto = document.createElement("p");
-  texto.className = "post-text";
-  texto.textContent = post.text;
+  const conteudo = [head];
 
-  body.append(
-    head,
-    texto,
+  if (post.text) {
+    const texto = document.createElement("p");
+    texto.className = "post-text";
+    texto.textContent = post.text;
+    conteudo.push(texto);
+  }
+
+  if (post.image) {
+    const imagem = document.createElement("img");
+    imagem.className = "post-image";
+    imagem.src = post.image;
+    imagem.alt = "";
+    imagem.onclick = () => abrirLightbox(post.image);
+    conteudo.push(imagem);
+  }
+
+  if (post.hasVideo) {
+    const video = document.createElement("video");
+    video.className = "post-video";
+    video.src = `/posts/${post.id}/video`;
+    video.controls = true;
+    video.preload = "metadata";
+    video.playsInline = true;
+    conteudo.push(video);
+  }
+
+  conteudo.push(
     criarAcoes(post, onReagir, onToggleComments),
     criarComentarios(post, onResponder, onExcluirComentario)
   );
+
+  body.append(...conteudo);
   if (post.user) {
     const avatarLink = document.createElement("a");
     avatarLink.className = "avatar-link";

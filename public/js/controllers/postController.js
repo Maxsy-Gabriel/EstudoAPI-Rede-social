@@ -15,8 +15,8 @@ export async function carregarFeed() {
   return true;
 }
 
-export async function criarPost(userId, text) {
-  await postModel.criarPost(userId, text);
+export async function criarPost(userId, text, image, video) {
+  await postModel.criarPost(userId, text, image, video);
 }
 
 export async function reagir(postId, userId, type) {
