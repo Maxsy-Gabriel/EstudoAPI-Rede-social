@@ -4,4 +4,6 @@ export const state = {
   identidadeAtualId: null,
   comentariosAbertos: new Set(),
   isAdmin: false,
+  stories: [],
+  storiesVistas: new Set(),
 };
