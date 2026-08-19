@@ -25,8 +25,12 @@ import { getUsuarioLogado, logout, iniciarHeartbeat } from "./auth.js";
 import { iniciarChat } from "./chat.js";
 import * as userController from "./controllers/userController.js";
 import * as postController from "./controllers/postController.js";
+import * as storyController from "./controllers/storyController.js";
 import { renderPeopleList, renderIdentity } from "./views/userView.js";
 import { renderFeed } from "./views/postView.js";
+import { renderStories } from "./views/storiesView.js";
+import { abrirVisualizadorDeStories } from "./views/storyViewer.js";
+import { abrirComposerDeStory } from "./views/storyComposer.js";
 
 // Isso trava a identidade do usuário na conta com que ele fez login (o guard.js já barrou quem não está logado):
 const usuarioLogado = getUsuarioLogado();
@@ -57,6 +61,19 @@ async function atualizarUsuarios() {
     renderIdentity();
     atualizarTopnav();
   }
+}
+
+async function atualizarStories() {
+  await storyController.carregarStories();
+  renderStories(verStory, criarStoryNovo);
+}
+
+function verStory(grupoOrdenados, index) {
+  abrirVisualizadorDeStories(grupoOrdenados, index, atualizarStories);
+}
+
+function criarStoryNovo() {
+  abrirComposerDeStory(state.identidadeAtualId, atualizarStories);
 }
 
 async function atualizarFeed() {
@@ -302,6 +319,7 @@ async function iniciar() {
   mostrarMensagem(postsList, "Carregando...");
 
   await atualizarUsuarios();
+  await atualizarStories();
   await atualizarFeed();
 }
 

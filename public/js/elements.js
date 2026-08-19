@@ -1,4 +1,5 @@
 export const usersList = document.getElementById("users-list");
+export const storiesList = document.getElementById("stories-list");
 export const postsList = document.getElementById("posts-list");
 export const postsForm = document.getElementById("posts-form");
 export const identityCard = document.getElementById("identity-card");
