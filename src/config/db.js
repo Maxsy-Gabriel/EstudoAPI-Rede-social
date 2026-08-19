@@ -124,6 +124,20 @@ async function initDb() {
 
     -- Isso deixa rápido contar quantos seguidores alguém tem:
     CREATE INDEX IF NOT EXISTS idx_follows_followed ON follows (followed_id);
+
+    -- Isso cria os status/stories (texto e/ou imagem e/ou vídeo, somem sozinhos depois de 24h
+    -- via storyModel.apagarExpirados, chamado no boot e periodicamente pelo server.js):
+    CREATE TABLE IF NOT EXISTS stories (
+      id SERIAL PRIMARY KEY,
+      user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+      text TEXT NOT NULL DEFAULT '',
+      image TEXT,
+      video TEXT,
+      created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+    );
+
+    CREATE INDEX IF NOT EXISTS idx_stories_created_at ON stories (created_at);
+    CREATE INDEX IF NOT EXISTS idx_stories_user_id ON stories (user_id);
   `);
 
   await hashearSenhasEmTextoPuro();

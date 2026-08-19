@@ -12,6 +12,7 @@ let previewImgEl = null;
 let previewVideoEl = null;
 let imagemInput = null;
 let videoInput = null;
+let postarBtn = null;
 
 let imagemSelecionada = null;
 let videoSelecionado = null;
@@ -123,7 +124,7 @@ function criarOverlay() {
   videoInput.className = "hidden";
   videoBtn.onclick = () => videoInput.click();
 
-  const postarBtn = document.createElement("button");
+  postarBtn = document.createElement("button");
   postarBtn.type = "button";
   postarBtn.className = "btn btn-primary";
   postarBtn.textContent = "Postar status";
@@ -215,13 +216,28 @@ function limparMidia() {
   previewEl.classList.add("hidden");
 }
 
+// Isso fecha o composer e mostra a bolha na hora (otimista) — a requisição de verdade
+// roda por trás; só re-renderiza de novo se der erro (desfazendo) ou pra trocar o id
+// temporário pelo definitivo quando o servidor responder:
 function postar() {
   const texto = textoEl.value.trim();
   if (!texto && !imagemSelecionada && !videoSelecionado) return;
 
-  criarStory({ userId: usuarioIdAtual, text: texto, image: imagemSelecionada, video: videoSelecionado });
+  const dados = { userId: usuarioIdAtual, text: texto, image: imagemSelecionada, video: videoSelecionado };
+  const callback = aoPostarCallback;
+
+  const promessa = criarStory(dados);
   fecharComposer();
-  if (aoPostarCallback) aoPostarCallback();
+  if (callback) callback();
+
+  promessa
+    .catch((erro) => {
+      console.error("Falha ao postar status:", erro);
+      window.alert("Não foi possível publicar o status.");
+    })
+    .finally(() => {
+      if (callback) callback();
+    });
 }
 
 function fecharComposer() {

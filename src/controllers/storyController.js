@@ -1,4 +1,4 @@
-const postModel = require("../models/postModel");
+const storyModel = require("../models/storyModel");
 const userModel = require("../models/userModel");
 const videoStream = require("../utils/videoStream");
 
@@ -10,13 +10,27 @@ function tamanhoBase64EmBytes(dataUri) {
   return Math.floor((base64.length * 3) / 4);
 }
 
-// Isso lista todos os posts:
-async function listar(req, res) {
-  const posts = await postModel.listarTodos();
-  res.json(posts);
+// O Postgres devolve as colunas em snake_case; o front-end espera camelCase.
+// O vídeo não vai nessa lista (é pesado) — só um indicador; o conteúdo real
+// só é buscado quando o usuário abre aquele story, via streamVideo:
+function mapear(story) {
+  return {
+    id: story.id,
+    userId: story.user_id,
+    text: story.text,
+    image: story.image,
+    hasVideo: !!story.video,
+    createdAt: story.created_at,
+  };
 }
 
-// Isso cria um novo post:
+// Isso lista os stories ainda ativos (últimas 24h):
+async function listar(req, res) {
+  const stories = await storyModel.listarAtivos();
+  res.json(stories.map(mapear));
+}
+
+// Isso cria um novo story:
 async function criar(req, res) {
   const { userId, text, image, video } = req.body;
 
@@ -33,30 +47,30 @@ async function criar(req, res) {
     return res.status(404).json({ message: "Usuário não encontrado" });
   }
 
-  const novoPost = await postModel.criar(userId, text || "", image || null, video || null);
-  res.status(201).json(novoPost);
+  const novoStory = await storyModel.criar(userId, text || "", image || null, video || null);
+  res.status(201).json(mapear(novoStory));
 }
 
-// Isso serve o vídeo de um post com suporte a Range (necessário pro <video> dar seek);
+// Isso serve o vídeo de um story com suporte a Range (necessário pro <video> dar seek);
 // o data URI só é buscado no banco na primeira requisição, depois fica em cache:
 async function streamVideo(req, res) {
   const id = Number(req.params.id);
-  await videoStream.servirVideo(req, res, `post:${id}`, async () => {
-    const post = await postModel.buscarPorId(id);
-    return post?.video || null;
+  await videoStream.servirVideo(req, res, `story:${id}`, async () => {
+    const story = await storyModel.buscarPorId(id);
+    return story?.video || null;
   });
 }
 
-// Isso remove um post (rota já passa pelo exigirAdmin):
+// Isso remove um story (rota já passa pelo exigirAdmin):
 async function remover(req, res) {
   const id = Number(req.params.id);
-  const rowCount = await postModel.remover(id);
+  const rowCount = await storyModel.remover(id);
 
   if (rowCount === 0) {
-    return res.status(404).json({ message: "Post não encontrado" });
+    return res.status(404).json({ message: "Status não encontrado" });
   }
 
-  videoStream.invalidar(`post:${id}`);
+  videoStream.invalidar(`story:${id}`);
   res.status(204).send();
 }
 

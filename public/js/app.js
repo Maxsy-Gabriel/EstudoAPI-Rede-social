@@ -68,12 +68,18 @@ async function atualizarStories() {
   renderStories(verStory, criarStoryNovo);
 }
 
+// Isso só redesenha a barra de status com o que já tem em state.stories (sem rede);
+// usado no post otimista, pra bolha aparecer na hora, sem esperar o servidor confirmar:
+function renderizarStoriesNaTela() {
+  renderStories(verStory, criarStoryNovo);
+}
+
 function verStory(grupoOrdenados, index) {
   abrirVisualizadorDeStories(grupoOrdenados, index, atualizarStories);
 }
 
 function criarStoryNovo() {
-  abrirComposerDeStory(state.identidadeAtualId, atualizarStories);
+  abrirComposerDeStory(state.identidadeAtualId, renderizarStoriesNaTela);
 }
 
 async function atualizarFeed() {

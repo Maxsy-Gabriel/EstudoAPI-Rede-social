@@ -27,7 +27,12 @@ export function renderStories(onVer, onCriar) {
   // Lista navegável no visualizador (eu primeiro, se eu tiver status ativo):
   const grupoOrdenados = meusItens.length > 0 ? [[meuId, meusItens], ...outros] : outros;
 
-  storiesList.appendChild(criarBolhaPropria(meusItens, grupoOrdenados, onVer, onCriar));
+  // O círculo de adicionar é sempre a primeira bolha; meu status (se eu tiver) fica logo ao lado dele:
+  storiesList.appendChild(criarBolhaAdicionar(onCriar));
+
+  if (meusItens.length > 0) {
+    storiesList.appendChild(criarBolhaPropria(grupoOrdenados, onVer));
+  }
 
   if (outros.length === 0) {
     const vazio = document.createElement("li");
@@ -59,43 +64,48 @@ function criarAvatarWrap(user) {
   return { avatarWrap, ring };
 }
 
-function criarBolhaPropria(meusItens, grupoOrdenados, onVer, onCriar) {
+function criarBolhaAdicionar(onCriar) {
+  const li = document.createElement("li");
+
+  const botao = document.createElement("button");
+  botao.type = "button";
+  botao.className = "story-bubble story-bubble-adicionar";
+  botao.setAttribute("aria-label", "Adicionar status");
+  botao.onclick = onCriar;
+
+  const circulo = document.createElement("span");
+  circulo.className = "story-add-circulo";
+  circulo.textContent = "+";
+  circulo.setAttribute("aria-hidden", "true");
+
+  const nome = document.createElement("span");
+  nome.className = "story-name";
+  nome.textContent = "Novo status";
+
+  botao.append(circulo, nome);
+  li.appendChild(botao);
+  return li;
+}
+
+function criarBolhaPropria(grupoOrdenados, onVer) {
   const user = usuarioPorId(state.identidadeAtualId);
   const li = document.createElement("li");
 
-  const bubble = document.createElement("div");
-  bubble.className = "story-bubble";
+  const botao = document.createElement("button");
+  botao.type = "button";
+  botao.className = "story-bubble";
+  botao.setAttribute("aria-label", "Ver seu status");
+  botao.onclick = () => onVer(grupoOrdenados, 0);
 
   const { avatarWrap, ring } = criarAvatarWrap(user);
   ring.classList.add("self");
-
-  const hitBtn = document.createElement("button");
-  hitBtn.type = "button";
-  hitBtn.className = "story-bubble-hit";
-  hitBtn.setAttribute("aria-label", meusItens.length > 0 ? "Ver seu status" : "Adicionar status");
-  hitBtn.onclick = () => {
-    if (meusItens.length > 0) onVer(grupoOrdenados, 0);
-    else onCriar();
-  };
-
-  const addBtn = document.createElement("button");
-  addBtn.type = "button";
-  addBtn.className = "story-add-badge";
-  addBtn.textContent = "+";
-  addBtn.setAttribute("aria-label", "Adicionar novo status");
-  addBtn.onclick = (e) => {
-    e.stopPropagation();
-    onCriar();
-  };
-
-  avatarWrap.append(hitBtn, addBtn);
 
   const nome = document.createElement("span");
   nome.className = "story-name";
   nome.textContent = "Seu status";
 
-  bubble.append(avatarWrap, nome);
-  li.appendChild(bubble);
+  botao.append(avatarWrap, nome);
+  li.appendChild(botao);
   return li;
 }
 

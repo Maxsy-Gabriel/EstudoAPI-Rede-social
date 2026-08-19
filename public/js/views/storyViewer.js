@@ -1,7 +1,7 @@
 import { state } from "../state.js";
 import { criarAvatar } from "../utils/dom.js";
 import { tempoRelativo } from "../utils/format.js";
-import { marcarComoVisto } from "../controllers/storyController.js";
+import { marcarComoVisto, excluirStory } from "../controllers/storyController.js";
 
 const DURACAO_ITEM_MS = 5000;
 
@@ -10,6 +10,7 @@ let barrasEl = null;
 let headerAvatarEl = null;
 let headerNomeEl = null;
 let headerTempoEl = null;
+let excluirBtn = null;
 let conteudoEl = null;
 
 let grupos = [];
@@ -37,6 +38,12 @@ function criarOverlay() {
   headerTempoEl = document.createElement("span");
   headerTempoEl.className = "story-viewer-tempo";
 
+  excluirBtn = document.createElement("button");
+  excluirBtn.type = "button";
+  excluirBtn.className = "story-viewer-excluir hidden";
+  excluirBtn.textContent = "Excluir";
+  excluirBtn.onclick = aoClicarExcluir;
+
   const fecharBtn = document.createElement("button");
   fecharBtn.type = "button";
   fecharBtn.className = "story-viewer-fechar";
@@ -44,7 +51,7 @@ function criarOverlay() {
   fecharBtn.setAttribute("aria-label", "Fechar");
   fecharBtn.onclick = fecharVisualizador;
 
-  header.append(headerAvatarEl, headerNomeEl, headerTempoEl, fecharBtn);
+  header.append(headerAvatarEl, headerNomeEl, headerTempoEl, excluirBtn, fecharBtn);
 
   conteudoEl = document.createElement("div");
   conteudoEl.className = "story-viewer-conteudo";
@@ -128,18 +135,27 @@ function renderizarItemAtual() {
   headerAvatarEl.appendChild(criarAvatar(user));
   headerNomeEl.textContent = user ? user.name : "Usuário";
   headerTempoEl.textContent = tempoRelativo(item.createdAt);
+  excluirBtn.classList.toggle("hidden", !state.isAdmin);
 
   conteudoEl.innerHTML = "";
 
-  if (item.video) {
+  if (item.hasVideo) {
     const video = document.createElement("video");
     video.className = "story-viewer-video";
-    video.src = item.video;
+    video.src = `/stories/${item.id}/video`;
     video.autoplay = true;
+    video.muted = true;
     video.playsInline = true;
     video.onended = () => navegar(1);
+    video.onerror = () => navegar(1);
+    // A barra só começa a andar quando o vídeo realmente está tocando (não quando
+    // só terminou de carregar os metadados) — antes disso ela ficava cheia em 5s
+    // fixos mesmo com a tela ainda preta esperando o vídeo carregar:
+    video.onplaying = () => {
+      const duracaoMs = Number.isFinite(video.duration) ? video.duration * 1000 : DURACAO_ITEM_MS;
+      iniciarBarraDeProgresso(duracaoMs);
+    };
     conteudoEl.appendChild(video);
-    iniciarBarraDeProgresso(true);
   } else {
     if (item.image) {
       const img = document.createElement("img");
@@ -156,11 +172,12 @@ function renderizarItemAtual() {
       conteudoEl.appendChild(texto);
     }
 
-    iniciarBarraDeProgresso(false);
+    iniciarBarraDeProgresso(DURACAO_ITEM_MS);
+    timer = setTimeout(() => navegar(1), DURACAO_ITEM_MS);
   }
 }
 
-function iniciarBarraDeProgresso(controladoPeloVideo) {
+function iniciarBarraDeProgresso(duracaoMs) {
   const preench = preenchimentoAtualEl();
   if (!preench) return;
 
@@ -168,13 +185,9 @@ function iniciarBarraDeProgresso(controladoPeloVideo) {
   preench.style.width = "0%";
 
   requestAnimationFrame(() => {
-    preench.style.transition = `width ${DURACAO_ITEM_MS}ms linear`;
+    preench.style.transition = `width ${duracaoMs}ms linear`;
     preench.style.width = "100%";
   });
-
-  if (!controladoPeloVideo) {
-    timer = setTimeout(() => navegar(1), DURACAO_ITEM_MS);
-  }
 }
 
 function navegar(direcao) {
@@ -196,6 +209,20 @@ function navegar(direcao) {
   }
 
   fecharVisualizador();
+}
+
+async function aoClicarExcluir() {
+  const [, itens] = grupoAtual();
+  const item = itens[itemIndex];
+  if (!window.confirm("Excluir este status? Isso não pode ser desfeito.")) return;
+
+  try {
+    await excluirStory(item.id, state.identidadeAtualId);
+    fecharVisualizador();
+  } catch (erro) {
+    console.error("Falha ao excluir status:", erro);
+    window.alert("Não foi possível excluir esse status.");
+  }
 }
 
 function fecharVisualizador() {
