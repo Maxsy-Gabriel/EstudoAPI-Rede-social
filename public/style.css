@@ -514,12 +514,13 @@ button {
 
 .stories-bar {
   border-bottom: 1px solid var(--border);
+  padding-bottom: 16px;
+  margin-bottom: 20px;
 }
 
 .stories-list {
-  max-width: 980px;
-  margin: 0 auto;
-  padding: 16px 20px;
+  margin: 0;
+  padding: 0;
   display: flex;
   gap: 18px;
   list-style: none;
