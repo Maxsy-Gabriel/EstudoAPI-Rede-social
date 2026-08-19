@@ -31,14 +31,106 @@ body {
   overflow: hidden;
 }
 
-/* Isso deixa a imagem de fundo mais apagada sem afetar a opacidade do conteúdo por cima: */
+/* Isso deixa a imagem de fundo mais apagada sem afetar a opacidade do conteúdo por cima.
+   A imagem agora é só textura (não tem ícones desenhados nela) — quem faz o papel de
+   ícones/circuitos "reais" da composição é o .icon-overlay/.card-lines abaixo, então o
+   fundo pode usar "cover" à vontade, sem se preocupar em manter proporção alinhada a nada: */
 body::before {
   content: "";
   position: fixed;
   inset: 0;
   z-index: -1;
-  background: url("/app/assets/images/background-landingpage2.png") center 15% / cover no-repeat;
-  opacity: 0.13;
+  background: url("/app/assets/images/background-landingpage.png") center top / cover no-repeat;
+  opacity: 0.28;
+}
+
+/* Ícones/linhas recriados em código, no lugar dos ícones que a imagem antiga tinha desenhados.
+   Posições em % fixas, calibradas pro layout desktop. Somem em telas de tablet/mobile (ver
+   media query mais abaixo), onde o card muda de lugar no layout e essas % deixam de bater. */
+.icon-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1672 / 941;
+  z-index: 0;
+  pointer-events: none;
+  opacity: 0.7;
+}
+
+.overlay-icon {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: clamp(36px, 5.4vw, 72px);
+  height: clamp(36px, 5.4vw, 72px);
+  border-radius: 22%;
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: rgba(10, 10, 10, 0.75);
+  color: var(--gray-light);
+  backdrop-filter: blur(4px);
+}
+
+.overlay-icon svg {
+  width: 55%;
+  height: 55%;
+}
+
+/* Linhas ligando os ícones ao card, desenhadas dinamicamente por card-lines.js:
+   o card se move de verdade no layout, então a posição real dele só dá pra saber com JS. */
+.card-lines {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: visible;
+  opacity: 0.7;
+}
+
+/* Em tablet/mobile o card desce pra baixo do texto — os % fixos dos ícones deixam de bater
+   com a composição, então escondemos ícones e linhas por completo, ficando só o card: */
+@media (max-width: 900px) {
+  .icon-overlay,
+  .card-lines {
+    display: none;
+  }
+}
+
+.card-lines path {
+  fill: none;
+  stroke: rgba(255, 255, 255, 0.8);
+  stroke-width: 1;
+  stroke-dasharray: 4 4;
+  filter: drop-shadow(0 0 3px rgba(49, 93, 255, 0.9));
+}
+
+/* Ponto de luz no encaixe da linha com o ícone, tipo uma faísca de conexão: */
+.line-spark {
+  fill: #ffffff;
+  filter: drop-shadow(0 0 5px rgba(49, 93, 255, 1)) drop-shadow(0 0 9px rgba(49, 93, 255, 0.8));
+  animation: spark-pulse 2.2s ease-in-out infinite;
+}
+
+@keyframes spark-pulse {
+  0%,
+  100% {
+    opacity: 0.75;
+    r: 2.3;
+  }
+  50% {
+    opacity: 1;
+    r: 3.4;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .line-spark {
+    animation: none;
+  }
 }
 
 main {
@@ -151,6 +243,7 @@ main {
 
 .hero {
   position: relative;
+  z-index: 1;
   flex: 1;
   min-height: 0;
   width: 100%;
@@ -611,6 +704,8 @@ main {
 /* ---------- footer ---------- */
 
 .landing-footer {
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
   justify-content: space-between;
