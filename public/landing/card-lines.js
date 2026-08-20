@@ -32,17 +32,45 @@
     return { x: cx + dx * escala, y: cy + dy * escala };
   }
 
-  // Isso acha o meio exato de um lado do ícone (esquerda/direita/cima/baixo), definido no
-  // atributo data-lado de cada ícone — a linha sai sempre bem no centro daquela face, não
-  // num ponto calculado por ângulo:
-  function meioDoLado(rect, lado) {
-    switch (lado) {
+  // Isso acha um ponto nomeado de um retângulo (meio de um lado, ou um dos cantos),
+  // definido no atributo data-lado/data-lado-card de cada ícone — a linha sai/chega sempre
+  // naquele ponto exato, não num ponto calculado por ângulo:
+  function pontoNomeado(rect, nome) {
+    switch (nome) {
       case "esquerda":
         return { x: rect.left, y: rect.top + rect.height / 2 };
       case "direita":
         return { x: rect.right, y: rect.top + rect.height / 2 };
       case "cima":
         return { x: rect.left + rect.width / 2, y: rect.top };
+      case "canto-superior-esquerdo":
+        return { x: rect.left, y: rect.top };
+      case "canto-superior-direito":
+        return { x: rect.right, y: rect.top };
+      case "canto-inferior-esquerdo":
+        return { x: rect.left, y: rect.bottom };
+      case "canto-inferior-direito":
+        return { x: rect.right, y: rect.bottom };
+      // Ponto a meio caminho entre o canto e o centro do card (1/4 da largura/altura
+      // a partir da borda, pra DENTRO do card, não colado no canto nem no meio do lado):
+      case "quarto-superior-esquerdo":
+        return { x: rect.left + rect.width / 4, y: rect.top + rect.height / 4 };
+      case "quarto-superior-direito":
+        return { x: rect.right - rect.width / 4, y: rect.top + rect.height / 4 };
+      case "quarto-inferior-esquerdo":
+        return { x: rect.left + rect.width / 4, y: rect.bottom - rect.height / 4 };
+      case "quarto-inferior-direito":
+        return { x: rect.right - rect.width / 4, y: rect.bottom - rect.height / 4 };
+      // Ponto EM CIMA da borda (não pra dentro do card), deslocado do meio do lado em
+      // direção a um dos cantos — usado quando a linha entra pelo lado de cima/baixo:
+      case "borda-superior-quarto-esquerdo":
+        return { x: rect.left + rect.width / 4, y: rect.top };
+      case "borda-superior-quarto-direito":
+        return { x: rect.right - rect.width / 4, y: rect.top };
+      case "borda-inferior-quarto-esquerdo":
+        return { x: rect.left + rect.width / 4, y: rect.bottom };
+      case "borda-inferior-quarto-direito":
+        return { x: rect.right - rect.width / 4, y: rect.bottom };
       case "baixo":
       default:
         return { x: rect.left + rect.width / 2, y: rect.bottom };
@@ -88,10 +116,13 @@
       };
 
       // A linha sai bem do meio de um lado do ícone (esquerda/direita/cima/baixo,
-      // definido em data-lado no HTML) e para na borda do card:
+      // definido em data-lado no HTML) e para na borda do card. Por padrão o ponto de
+      // chegada é o mais próximo do ícone (pode cair numa lateral); se o ícone tiver
+      // data-lado-card, a linha força a chegada por aquele lado específico do card:
       const lado = icone.dataset.lado || "baixo";
-      const origem = meioDoLado(rectIcone, lado);
-      const destino = pontoNaBorda(rectCard, centroIcone.x, centroIcone.y);
+      const ladoCard = icone.dataset.ladoCard;
+      const origem = pontoNomeado(rectIcone, lado);
+      const destino = ladoCard ? pontoNomeado(rectCard, ladoCard) : pontoNaBorda(rectCard, centroIcone.x, centroIcone.y);
 
       const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
       path.setAttribute("d", caminhoCotovelo(origem, destino, lado));
